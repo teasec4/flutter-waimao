@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'package:paste_tool/presentation/providers/dictionary_provider.dart';
-import 'package:paste_tool/presentation/routes/dictionary/widgets/entry_card.dart';
-import 'package:paste_tool/presentation/routes/dictionary/widgets/mode_chip.dart';
 
 class DictionaryPage extends StatefulWidget {
   const DictionaryPage({super.key});
@@ -14,201 +11,182 @@ class DictionaryPage extends StatefulWidget {
 }
 
 class _DictionaryPageState extends State<DictionaryPage> {
-  final _searchController = TextEditingController();
+  final _searchCtrl = TextEditingController();
+  final _focusNode = FocusNode();
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _searchCtrl.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
-  void _copy(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Скопировано: $text'),
-        duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  void _search() {
+    final query = _searchCtrl.text.trim();
+    if (query.isNotEmpty) {
+      context.read<DictionaryProvider>().search(query);
+      _focusNode.unfocus();
+    }
+  }
+
+  void _clear() {
+    _searchCtrl.clear();
+    context.read<DictionaryProvider>().clear();
+    _focusNode.requestFocus();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Column(
       children: [
-        _buildSearchBar(theme),
-        _buildModeChips(),
-        const Divider(height: 1),
-        Expanded(child: _buildResults()),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+          child: TextField(
+            controller: _searchCtrl,
+            focusNode: _focusNode,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: 'Введите китайское слово…',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_searchCtrl.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.search),
+                      tooltip: 'Поиск',
+                      onPressed: _search,
+                    ),
+                  if (_searchCtrl.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      tooltip: 'Очистить',
+                      onPressed: _clear,
+                    ),
+                ],
+              ),
+              border: const OutlineInputBorder(),
+            ),
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) => _search(),
+          ),
+        ),
+        Expanded(
+          child: Consumer<DictionaryProvider>(
+            builder: (context, provider, _) {
+              final state = provider.state;
+
+              switch (state.status) {
+                case DictionaryStatus.loading:
+                  return const Center(child: CircularProgressIndicator());
+
+                case DictionaryStatus.error:
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.cloud_off, size: 48, color: Colors.grey[400]),
+                          const SizedBox(height: 12),
+                          Text(
+                            state.errorMessage!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                          const SizedBox(height: 16),
+                          FilledButton.icon(
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Повторить'),
+                            onPressed: _search,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+
+                case DictionaryStatus.success:
+                  if (state.results.isNotEmpty) {
+                    return ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      itemCount: state.results.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      itemBuilder: (_, i) {
+                        final entry = state.results[i];
+                        return ListTile(
+                          title: Text(
+                            entry.headword,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (entry.pinyin.isNotEmpty)
+                                Text(
+                                  entry.pinyin,
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              const SizedBox(height: 4),
+                              ...entry.translations.map(
+                                (t) => Text('• $t'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  }
+                  return _buildEmptyFound();
+
+                case DictionaryStatus.initial:
+                  return _buildWelcome();
+              }
+            },
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSearchBar(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Китайский, пиньинь или перевод...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    context.read<DictionaryProvider>().search('');
-                  },
-                )
-              : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          filled: true,
-          fillColor: theme.colorScheme.surfaceContainerHighest,
-          contentPadding: const EdgeInsets.symmetric(vertical: 12),
-        ),
-        onChanged: (v) => context.read<DictionaryProvider>().search(v),
-      ),
-    );
-  }
-
-  Widget _buildModeChips() {
-    return Consumer<DictionaryProvider>(
-      builder: (context, provider, _) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          children: [
-            ModeChip(
-              label: 'Все',
-              icon: Icons.menu_book,
-              selected: !provider.showFavorites,
-              onTap: () {
-                if (provider.showFavorites) provider.toggleFavorites();
-              },
-            ),
-            const SizedBox(width: 8),
-            ModeChip(
-              label: 'Избранное',
-              icon: Icons.star,
-              selected: provider.showFavorites,
-              onTap: () {
-                if (!provider.showFavorites) provider.toggleFavorites();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildResults() {
-    return Consumer<DictionaryProvider>(
-      builder: (context, provider, _) {
-        if (provider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final entries = provider.filteredEntries;
-
-        if (provider.isEmpty) {
-          return _buildEmptyState(provider);
-        }
-
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth > 700;
-
-            if (isWide) {
-              return GridView.builder(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  childAspectRatio: 2.8,
-                ),
-                itemCount: entries.length,
-                itemBuilder: (context, index) {
-                  final entry = entries[index];
-                  return EntryCard(
-                    entry: entry,
-                    onCopy: (text) => _copy(text),
-                    onToggleFavorite: () =>
-                        context.read<DictionaryProvider>().toggleFavorite(entry.id),
-                  );
-                },
-              );
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              itemCount: entries.length,
-              itemBuilder: (context, index) {
-                final entry = entries[index];
-                return EntryCard(
-                  entry: entry,
-                  onCopy: (text) => _copy(text),
-                  onToggleFavorite: () =>
-                      context.read<DictionaryProvider>().toggleFavorite(entry.id),
-                );
-              },
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptyState(DictionaryProvider provider) {
-    final theme = Theme.of(context);
-    final isFavoritesMode = provider.showFavorites;
-    final hasQuery = provider.query.isNotEmpty;
-
-    String icon;
-    String title;
-    String subtitle;
-
-    if (isFavoritesMode) {
-      icon = '⭐';
-      title = 'Нет избранных слов';
-      subtitle =
-          'Нажимайте на звёздочку у слов, чтобы добавить их в избранное';
-    } else if (hasQuery) {
-      icon = '🔍';
-      title = 'Ничего не найдено';
-      subtitle = 'Попробуйте изменить запрос';
-    } else {
-      icon = '📖';
-      title = 'Введите запрос для поиска';
-      subtitle = 'Китайские иероглифы, пиньинь или русский перевод';
-    }
-
+  Widget _buildWelcome() {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(icon, style: const TextStyle(fontSize: 56)),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(color: theme.colorScheme.onSurface),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            ),
-          ],
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.menu_book, size: 64, color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          Text(
+            'Китайско-русский словарь',
+            style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Начните вводить слово для поиска',
+            style: TextStyle(color: Colors.grey[500]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyFound() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
+          const SizedBox(height: 12),
+          Text(
+            'Ничего не найдено',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ),
+        ],
       ),
     );
   }

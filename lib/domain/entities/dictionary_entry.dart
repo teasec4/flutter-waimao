@@ -1,33 +1,13 @@
-class DictionaryMeaning {
-  final int id;
-  final int level;
-  final String text;
-  final int orderNum;
-
-  const DictionaryMeaning({
-    required this.id,
-    this.level = 0,
-    required this.text,
-    this.orderNum = 0,
-  });
-}
-
 class DictionaryEntry {
-  final int id;
-  final String simplified;
+  final String id;
+  final String headword; // 中文
   final String pinyin;
-  final List<DictionaryMeaning> meanings;
-  bool isFavorite;
+  final List<String> translations; // переводы на русский
 
-  DictionaryEntry({
+  const DictionaryEntry({
     required this.id,
-    required this.simplified,
-    this.pinyin = '',
-    required this.meanings,
-    this.isFavorite = false,
+    required this.headword,
+    required this.pinyin,
+    required this.translations,
   });
-
-  String get russian => meanings.isNotEmpty
-      ? meanings.map((m) => m.text).join('; ')
-      : '';
 }

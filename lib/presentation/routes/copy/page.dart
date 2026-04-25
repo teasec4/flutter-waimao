@@ -163,7 +163,7 @@ class _CopyPageState extends State<CopyPage> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PhraseProvider>();
-    if (provider.activeCategory != null || provider.showFavorites) {
+    if (provider.activeCategory != null) {
       return _buildPhrasesView(provider);
     }
     return _buildCategoriesView(provider);
@@ -172,100 +172,51 @@ class _CopyPageState extends State<CopyPage> {
   Widget _buildCategoriesView(PhraseProvider provider) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isWide = constraints.maxWidth > 600;
-        final columns = isWide ? (constraints.maxWidth > 900 ? 3 : 2) : 1;
-
         return Stack(
           children: [
-            Column(
-              children: [
-                // Панель действий: избранное
-                if (provider.phrases.any((p) => p.isFavorite) ||
-                    provider.showFavorites)
-                  Container(
-                    width: double.infinity,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primaryContainer
-                        .withValues(alpha: 0.3),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              provider.showFavorites
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: Colors.red,
-                            ),
-                            onPressed: () => provider.toggleFavoritesView(),
-                            tooltip: 'Избранное',
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Избранное',
+            provider.categories.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.folder_open,
+                            size: 64, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        const Text('Нет папок',
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: provider.showFavorites
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ],
-                      ),
+                                fontSize: 18, color: Colors.grey)),
+                        const SizedBox(height: 8),
+                        const Text('Нажмите + чтобы создать',
+                            style: TextStyle(color: Colors.grey)),
+                      ],
                     ),
-                  ),
-                Expanded(
-                  child: provider.categories.isEmpty
-                      ? const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.folder_open,
-                                  size: 64, color: Colors.grey),
-                              SizedBox(height: 16),
-                              Text('Нет папок',
-                                  style: TextStyle(
-                                      fontSize: 18, color: Colors.grey)),
-                              SizedBox(height: 8),
-                              Text('Нажмите + чтобы создать',
-                                  style:
-                                      TextStyle(color: Colors.grey)),
-                            ],
-                          ),
-                        )
-                      : GridView.builder(
-                          padding: const EdgeInsets.only(
-                              top: 8, left: 8, right: 8, bottom: 80),
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: columns,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                            childAspectRatio: isWide ? 2.2 : 4.5,
-                          ),
-                          itemCount: provider.categories.length,
-                          itemBuilder: (context, index) {
-                            final cat = provider.categories[index];
-                            return CategoryCard(
-                              id: cat.id,
-                              name: cat.name,
-                              isWide: isWide,
-                              onTap: () => provider.selectCategory(cat),
-                              onRename: () => _showAddCategoryDialog(
-                                id: cat.id,
-                                initialName: cat.name,
-                              ),
-                              onDelete: () => _confirmDeleteCategory(
-                                  provider, cat.id, cat.name),
-                            );
-                          },
+                  )
+                : ListView.separated(
+                    padding:
+                        const EdgeInsets.only(top: 4, bottom: 80),
+                    itemCount: provider.categories.length,
+                    separatorBuilder: (_, _) =>
+                        const Divider(height: 1, indent: 32),
+                    itemBuilder: (context, index) {
+                      final cat = provider.categories[index];
+                      return CategoryCard(
+                        id: cat.id,
+                        name: cat.name,
+                        isFirst: index == 0,
+                        onTap: () =>
+                            provider.selectCategory(cat),
+                        onRename: () => _showAddCategoryDialog(
+                          id: cat.id,
+                          initialName: cat.name,
                         ),
-                ),
-              ],
-            ),
+                        onDelete: () =>
+                            _confirmDeleteCategory(
+                                provider, cat.id, cat.name),
+                        canDelete:
+                            provider.canDeleteCategory(cat.id),
+                      );
+                    },
+                  ),
             Positioned(
               right: 16,
               bottom: 16,
@@ -281,18 +232,15 @@ class _CopyPageState extends State<CopyPage> {
   }
 
   Widget _buildPhrasesView(PhraseProvider provider) {
-    final isFavorites = provider.showFavorites;
+    final isFavorites = provider.isFavoritesCategory;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isWide = constraints.maxWidth > 600;
-        final columns = isWide ? 2 : 1;
-
         return Stack(
           children: [
             Column(
               children: [
-                // Верхняя панель: назад + заголовок + избранное
+                // Верхняя панель: назад + заголовок
                 Container(
                   width: double.infinity,
                   color: Theme.of(context)
@@ -301,7 +249,7 @@ class _CopyPageState extends State<CopyPage> {
                       .withValues(alpha: 0.3),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                        horizontal: 4, vertical: 4),
                     child: Column(
                       children: [
                         Row(
@@ -314,29 +262,35 @@ class _CopyPageState extends State<CopyPage> {
                               },
                               tooltip: 'Назад к папкам',
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 4),
                             Icon(
                               isFavorites
                                   ? Icons.favorite
                                   : Icons.folder,
                               color: isFavorites
                                   ? Colors.red
-                                  : Theme.of(context).colorScheme.primary,
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .primary,
+                              size: 20,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 isFavorites
                                     ? 'Избранное'
-                                    : provider.activeCategory?.name ?? '',
+                                    : provider
+                                            .activeCategory?.name ??
+                                        '',
                                 style: const TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.w500),
                               ),
                             ),
                             if (!isFavorites)
                               IconButton(
-                                icon: const Icon(Icons.edit, size: 20),
+                                icon:
+                                    const Icon(Icons.edit, size: 18),
                                 tooltip: 'Переименовать',
                                 onPressed: () =>
                                     _showAddCategoryDialog(
@@ -350,18 +304,18 @@ class _CopyPageState extends State<CopyPage> {
                         // Поиск
                         Padding(
                           padding: const EdgeInsets.only(
-                              left: 8, right: 8, bottom: 8),
+                              left: 8, right: 8, bottom: 6),
                           child: TextField(
                             controller: _searchController,
                             decoration: InputDecoration(
-                              hintText: 'Поиск по фразам...',
+                              hintText: 'Поиск...',
                               prefixIcon: const Icon(Icons.search,
-                                  size: 20),
+                                  size: 18),
                               suffixIcon: _searchController
                                       .text.isNotEmpty
                                   ? IconButton(
                                       icon: const Icon(
-                                          Icons.clear, size: 18),
+                                          Icons.clear, size: 16),
                                       onPressed: () {
                                         _searchController.clear();
                                         provider.setSearchQuery('');
@@ -371,14 +325,11 @@ class _CopyPageState extends State<CopyPage> {
                               isDense: true,
                               contentPadding:
                                   const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 12),
+                                      vertical: 6,
+                                      horizontal: 10),
                               border: OutlineInputBorder(
                                 borderRadius:
-                                    BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .outline),
+                                    BorderRadius.circular(10),
                               ),
                             ),
                             onChanged: provider.setSearchQuery,
@@ -394,56 +345,13 @@ class _CopyPageState extends State<CopyPage> {
                       ? const Center(
                           child: CircularProgressIndicator())
                       : provider.phrases.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    isFavorites
-                                        ? Icons.favorite_border
-                                        : Icons.content_paste,
-                                    size: 48,
-                                    color: Colors.grey,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    _searchController.text.isNotEmpty
-                                        ? 'Ничего не найдено'
-                                        : isFavorites
-                                            ? 'Нет избранных фраз'
-                                            : 'В папке нет фраз',
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.grey),
-                                  ),
-                                  if (_searchController
-                                      .text.isNotEmpty)
-                                    TextButton(
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        provider.setSearchQuery('');
-                                      },
-                                      child:
-                                          const Text('Очистить поиск'),
-                                    ),
-                                ],
-                              ),
-                            )
-                          : GridView.builder(
+                          ? _buildEmptyPhrases(isFavorites, provider)
+                          : ListView.separated(
                               padding: const EdgeInsets.only(
-                                  top: 4,
-                                  left: 8,
-                                  right: 8,
-                                  bottom: 80),
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: columns,
-                                mainAxisSpacing: 6,
-                                crossAxisSpacing: 8,
-                                childAspectRatio: isWide ? 3.0 : 5.0,
-                              ),
+                                  top: 2, bottom: 80),
                               itemCount: provider.phrases.length,
+                              separatorBuilder: (_, _) =>
+                                  const Divider(height: 1, indent: 16),
                               itemBuilder: (context, index) {
                                 final phrase =
                                     provider.phrases[index];
@@ -452,7 +360,8 @@ class _CopyPageState extends State<CopyPage> {
                                   text: phrase.text,
                                   isFavorite: phrase.isFavorite,
                                   onCopy: () =>
-                                      _copyToClipboard(phrase.text),
+                                      _copyToClipboard(
+                                          phrase.text),
                                   onToggleFavorite: () =>
                                       provider.toggleFavorite(
                                     phrase.id,
@@ -483,6 +392,38 @@ class _CopyPageState extends State<CopyPage> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildEmptyPhrases(bool isFavorites, PhraseProvider provider) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            isFavorites ? Icons.favorite_border : Icons.content_paste,
+            size: 48,
+            color: Colors.grey,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _searchController.text.isNotEmpty
+                ? 'Ничего не найдено'
+                : isFavorites
+                    ? 'Нет избранных фраз'
+                    : 'В папке нет фраз',
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+          if (_searchController.text.isNotEmpty)
+            TextButton(
+              onPressed: () {
+                _searchController.clear();
+                provider.setSearchQuery('');
+              },
+              child: const Text('Очистить поиск'),
+            ),
+        ],
+      ),
     );
   }
 }

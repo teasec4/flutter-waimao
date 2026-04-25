@@ -8,6 +8,10 @@ class ManageCategories {
 
   List<PhraseCategory> getCategories() => repository.getCategories();
 
+  void addCategoryRaw(PhraseCategory category) {
+    repository.addCategory(category);
+  }
+
   void addCategory(String name) {
     final category = PhraseCategory(
       id: DateTime.now().millisecondsSinceEpoch.toString(),

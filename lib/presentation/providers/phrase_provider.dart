@@ -8,10 +8,13 @@ class PhraseProvider extends ChangeNotifier {
   final ManagePhrases _managePhrases;
   final ManageCategories _manageCategories;
 
+  static const favoritesCategoryId = 'favorites';
+
   List<Phrase> _phrases = [];
   List<Phrase> get phrases => _filteredPhrases;
 
   List<Phrase> _allPhrases = [];
+  List<Phrase> get allPhrases => _allPhrases;
 
   List<PhraseCategory> _categories = [];
   List<PhraseCategory> get categories => _categories;
@@ -25,16 +28,13 @@ class PhraseProvider extends ChangeNotifier {
   String _searchQuery = '';
   String get searchQuery => _searchQuery;
 
-  bool _showFavorites = false;
-  bool get showFavorites => _showFavorites;
-
   PhraseProvider(this._managePhrases, this._manageCategories) {
     _loadCategories();
   }
 
-  /// Отфильтрованные фразы (поиск + избранное)
+  /// Отфильтрованные фразы (поиск)
   List<Phrase> get _filteredPhrases {
-    var result = _showFavorites ? _allPhrases.where((p) => p.isFavorite).toList() : _phrases;
+    var result = _phrases;
 
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
@@ -44,33 +44,58 @@ class PhraseProvider extends ChangeNotifier {
     return result;
   }
 
+  bool get isFavoritesCategory =>
+      _activeCategory?.id == favoritesCategoryId;
+
   void setSearchQuery(String query) {
     _searchQuery = query;
     notifyListeners();
   }
 
-  void toggleFavoritesView() {
-    _showFavorites = !_showFavorites;
-    if (_showFavorites) {
-      _activeCategory = null;
-      _loadAllPhrases();
-    } else {
-      notifyListeners();
-    }
-  }
-
   // --- Загрузка ---
 
   Future<void> _loadCategories() async {
+    _ensureFavoritesCategory();
     _categories = _manageCategories.getCategories();
+    // Избранное всегда первая
+    final favIdx = _categories.indexWhere((c) => c.id == favoritesCategoryId);
+    if (favIdx > 0) {
+      final fav = _categories.removeAt(favIdx);
+      _categories.insert(0, fav);
+    }
+    // Если нет категорий — проверяем, был ли ап
+    if (_categories.isEmpty) {
+      _ensureFavoritesCategory();
+      _categories = _manageCategories.getCategories();
+    }
     notifyListeners();
+  }
+
+  void _ensureFavoritesCategory() {
+    final cats = _manageCategories.getCategories();
+    if (!cats.any((c) => c.id == favoritesCategoryId)) {
+      _manageCategories.addCategoryRaw(
+        PhraseCategory(
+          id: favoritesCategoryId,
+          name: 'Избранное',
+          sortOrder: 0,
+        ),
+      );
+    }
   }
 
   Future<void> selectCategory(PhraseCategory? category) async {
     _activeCategory = category;
-    _showFavorites = false;
     _searchQuery = '';
-    await _refreshPhrases();
+
+    if (category?.id == favoritesCategoryId) {
+      // Показываем все избранные фразы
+      await _loadAllPhrases();
+      _phrases = _allPhrases.where((p) => p.isFavorite).toList();
+    } else {
+      await _refreshPhrases();
+    }
+    notifyListeners();
   }
 
   Future<void> _refreshPhrases() async {
@@ -104,6 +129,7 @@ class PhraseProvider extends ChangeNotifier {
   }
 
   Future<void> renameCategory(String id, String newName) async {
+    if (id == favoritesCategoryId) return; // нельзя переименовать избранное
     _manageCategories.renameCategory(id, newName);
     _categories = _manageCategories.getCategories();
 
@@ -114,7 +140,10 @@ class PhraseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool canDeleteCategory(String id) => id != favoritesCategoryId;
+
   Future<void> deleteCategory(String id) async {
+    if (id == favoritesCategoryId) return; // нельзя удалить избранное
     _manageCategories.removeCategory(id);
     _categories = _manageCategories.getCategories();
 
@@ -130,8 +159,9 @@ class PhraseProvider extends ChangeNotifier {
 
   Future<void> addPhrase(String text) async {
     await _managePhrases.addPhrase(text, categoryId: _activeCategory?.id);
-    if (_showFavorites) {
+    if (isFavoritesCategory) {
       await _loadAllPhrases();
+      _phrases = _allPhrases.where((p) => p.isFavorite).toList();
     } else {
       await _refreshPhrases();
     }
@@ -139,8 +169,9 @@ class PhraseProvider extends ChangeNotifier {
 
   Future<void> editPhrase(String id, String newText) async {
     await _managePhrases.editPhrase(id, newText);
-    if (_showFavorites) {
+    if (isFavoritesCategory) {
       await _loadAllPhrases();
+      _phrases = _allPhrases.where((p) => p.isFavorite).toList();
     } else {
       await _refreshPhrases();
     }
@@ -148,8 +179,10 @@ class PhraseProvider extends ChangeNotifier {
 
   Future<void> toggleFavorite(String id, bool isFavorite) async {
     await _managePhrases.toggleFavorite(id, isFavorite);
-    if (_showFavorites) {
+
+    if (isFavoritesCategory) {
       await _loadAllPhrases();
+      _phrases = _allPhrases.where((p) => p.isFavorite).toList();
     } else {
       await _refreshPhrases();
     }
@@ -157,8 +190,9 @@ class PhraseProvider extends ChangeNotifier {
 
   Future<void> deletePhrase(String id) async {
     await _managePhrases.deletePhrase(id);
-    if (_showFavorites) {
+    if (isFavoritesCategory) {
       await _loadAllPhrases();
+      _phrases = _allPhrases.where((p) => p.isFavorite).toList();
     } else {
       await _refreshPhrases();
     }

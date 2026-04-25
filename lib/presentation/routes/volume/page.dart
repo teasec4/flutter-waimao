@@ -7,6 +7,7 @@ import 'package:paste_tool/presentation/routes/volume/widgets/fill_indicator.dar
 import 'package:paste_tool/presentation/routes/volume/widgets/input_fields.dart';
 import 'package:paste_tool/presentation/routes/volume/widgets/summary_card.dart';
 import 'package:paste_tool/presentation/routes/volume/widgets/item_card.dart';
+import 'package:paste_tool/presentation/routes/volume/widgets/start_screen.dart';
 
 class VolumePage extends StatefulWidget {
   const VolumePage({super.key});
@@ -179,84 +180,162 @@ class _VolumePageState extends State<VolumePage> {
     );
   }
 
+  void _showSaveDialog() {
+    final nameCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Сохранить расчёт'),
+        content: TextField(
+          controller: nameCtrl,
+          decoration: const InputDecoration(
+            labelText: 'Название',
+            hintText: 'Загрузка №1',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final name = nameCtrl.text.trim();
+              if (name.isNotEmpty) {
+                context.read<VolumeProvider>().saveSession(name);
+                Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Сохранить'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth > 600;
-
-        return Consumer<VolumeProvider>(
-          builder: (context, provider, _) {
-            final truck = provider.activeTruck;
-
-            return Column(
-              children: [
-                TruckSelector(
-                  trucks: provider.trucks,
-                  activeTruck: truck,
-                  onTruckChanged: (t) => provider.selectTruck(t),
-                  onAddTruck: _showAddTruckDialog,
-                  onAddContainer20ft: () => provider.addContainerTemplate('20ft'),
-                  onAddContainer40ft: () => provider.addContainerTemplate('40ft'),
-                ),
-                if (truck != null)
-                  FillIndicator(
-                    bodyDimensions:
-                        '${truck.bodyLength.toInt()}×${truck.bodyWidth.toInt()}×${truck.bodyHeight.toInt()} см',
-                    bodyVolume: truck.bodyVolume,
-                    maxLoad: truck.maxLoad,
-                    totalVolume: provider.totalVolume,
-                    totalWeight: provider.totalWeight,
-                    volumeFillRatio: provider.volumeFillRatio,
-                    weightFillRatio: provider.weightFillRatio,
-                    canRemove: provider.trucks.length > 1,
-                    onRemove: () => provider.removeTruck(truck.id),
-                  ),
-                const Divider(height: 1),
-                if (!isWide) ...[
-                  InputFields(
-                    lengthCtrl: _lengthCtrl,
-                    widthCtrl: _widthCtrl,
-                    heightCtrl: _heightCtrl,
-                    weightCtrl: _weightCtrl,
-                    qtyCtrl: _qtyCtrl,
-                    onAdd: _addItem,
-                  ),
-                  SummaryCard(
-                    totalVolume: provider.totalVolume,
-                    totalWeight: provider.totalWeight,
-                  ),
-                ],
-                Expanded(child: _buildItemList(isWide, provider)),
-                if (isWide) ...[
-                  const Divider(height: 1),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InputFields(
-                          lengthCtrl: _lengthCtrl,
-                          widthCtrl: _widthCtrl,
-                          heightCtrl: _heightCtrl,
-                          weightCtrl: _weightCtrl,
-                          qtyCtrl: _qtyCtrl,
-                          onAdd: _addItem,
-                        ),
-                      ),
-                      const VerticalDivider(width: 1),
-                      Expanded(
-                        child: SummaryCard(
-                          totalVolume: provider.totalVolume,
-                          totalWeight: provider.totalWeight,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
+    return Consumer<VolumeProvider>(
+      builder: (context, provider, _) {
+        switch (provider.screen) {
+          case VolumeScreen.start:
+            return StartScreen(
+              trucks: provider.trucks,
+              sessions: provider.sessions,
+              onNewCalculation: (truck) => provider.goToInput(truck: truck),
+              onEditSession: (session) => provider.editSession(session),
+              onDeleteSession: (id) => provider.deleteSession(id),
+              onAddTruck: _showAddTruckDialog,
+              onAddContainer20ft: () => provider.addContainerTemplate('20ft'),
+              onAddContainer40ft: () => provider.addContainerTemplate('40ft'),
             );
-          },
-        );
+          case VolumeScreen.input:
+            return _buildInputScreen(provider);
+        }
       },
+    );
+  }
+
+  Widget _buildInputScreen(VolumeProvider provider) {
+    final truck = provider.activeTruck;
+    final isWide = MediaQuery.of(context).size.width > 600;
+
+    return Column(
+      children: [
+        // Верхняя панель с кнопкой «Назад» и сохранением
+        _buildTopBar(provider),
+        TruckSelector(
+          trucks: provider.trucks,
+          activeTruck: truck,
+          onTruckChanged: (t) => provider.selectTruck(t),
+          onAddTruck: _showAddTruckDialog,
+          onAddContainer20ft: () => provider.addContainerTemplate('20ft'),
+          onAddContainer40ft: () => provider.addContainerTemplate('40ft'),
+        ),
+        if (truck != null)
+          FillIndicator(
+            bodyDimensions:
+                '${truck.bodyLength.toInt()}×${truck.bodyWidth.toInt()}×${truck.bodyHeight.toInt()} см',
+            bodyVolume: truck.bodyVolume,
+            maxLoad: truck.maxLoad,
+            totalVolume: provider.totalVolume,
+            totalWeight: provider.totalWeight,
+            volumeFillRatio: provider.volumeFillRatio,
+            weightFillRatio: provider.weightFillRatio,
+            canRemove: provider.trucks.length > 1,
+            onRemove: () => provider.removeTruck(truck.id),
+          ),
+        const Divider(height: 1),
+        if (!isWide) ...[
+          InputFields(
+            lengthCtrl: _lengthCtrl,
+            widthCtrl: _widthCtrl,
+            heightCtrl: _heightCtrl,
+            weightCtrl: _weightCtrl,
+            qtyCtrl: _qtyCtrl,
+            onAdd: _addItem,
+          ),
+          SummaryCard(
+            totalVolume: provider.totalVolume,
+            totalWeight: provider.totalWeight,
+          ),
+        ],
+        Expanded(child: _buildItemList(isWide, provider)),
+        if (isWide) ...[
+          const Divider(height: 1),
+          Row(
+            children: [
+              Expanded(
+                child: InputFields(
+                  lengthCtrl: _lengthCtrl,
+                  widthCtrl: _widthCtrl,
+                  heightCtrl: _heightCtrl,
+                  weightCtrl: _weightCtrl,
+                  qtyCtrl: _qtyCtrl,
+                  onAdd: _addItem,
+                ),
+              ),
+              const VerticalDivider(width: 1),
+              Expanded(
+                child: SummaryCard(
+                  totalVolume: provider.totalVolume,
+                  totalWeight: provider.totalWeight,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTopBar(VolumeProvider provider) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Назад',
+            onPressed: () => provider.goToStart(),
+          ),
+          const Spacer(),
+          Text(
+            provider.inputMode == InputMode.editing
+                ? 'Редактирование'
+                : 'Новый расчёт',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.save_outlined),
+            tooltip: 'Сохранить',
+            onPressed: _showSaveDialog,
+          ),
+        ],
+      ),
     );
   }
 

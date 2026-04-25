@@ -3,3 +3,7 @@
 !lib/
 !lib/**
 !.gitignore
+
+!pubspec.lock
+!pubspec.yaml
+README.md

@@ -1,16 +1,12 @@
-import '../entities/dictionary_entry.dart';
-import '../repositories/dictionary_repository.dart';
+import 'package:paste_tool/domain/entities/dictionary_entry.dart';
+import 'package:paste_tool/domain/repositories/dictionary_repository.dart';
 
 class SearchDictionary {
-  final DictionaryRepository repository;
+  final DictionaryRepository _repository;
 
-  SearchDictionary(this.repository);
+  SearchDictionary({required DictionaryRepository repository})
+      : _repository = repository;
 
-  Future<List<DictionaryEntry>> getAll() => repository.getAll();
-
-  Future<List<DictionaryEntry>> search(String query) => repository.search(query);
-
-  Future<List<DictionaryEntry>> getFavorites() => repository.getFavorites();
-
-  void toggleFavorite(int entryId) => repository.toggleFavorite(entryId);
+  Future<List<DictionaryEntry>> call(String query) =>
+      _repository.search(query);
 }

@@ -17,8 +17,8 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: di.phraseProvider),
-        ChangeNotifierProvider.value(value: di.dictionaryProvider),
         ChangeNotifierProvider.value(value: di.volumeProvider),
+        ChangeNotifierProvider.value(value: di.dictionaryProvider),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: const PasteToolApp(),

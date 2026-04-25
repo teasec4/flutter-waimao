@@ -2,79 +2,84 @@ import 'package:flutter/foundation.dart';
 import 'package:paste_tool/domain/entities/dictionary_entry.dart';
 import 'package:paste_tool/domain/usecases/search_dictionary.dart';
 
+/// Состояние страницы словаря.
+enum DictionaryStatus { initial, loading, success, error }
+
+@immutable
+class DictionaryState {
+  final DictionaryStatus status;
+  final List<DictionaryEntry> results;
+  final String? errorMessage;
+  final String query;
+
+  const DictionaryState({
+    this.status = DictionaryStatus.initial,
+    this.results = const [],
+    this.errorMessage,
+    this.query = '',
+  });
+
+  DictionaryState copyWith({
+    DictionaryStatus? status,
+    List<DictionaryEntry>? results,
+    String? errorMessage,
+    String? query,
+  }) {
+    return DictionaryState(
+      status: status ?? this.status,
+      results: results ?? this.results,
+      errorMessage: errorMessage,
+      query: query ?? this.query,
+    );
+  }
+
+  bool get isEmpty => results.isEmpty && status != DictionaryStatus.initial;
+}
+
+/// ViewModel для экрана словаря.
 class DictionaryProvider extends ChangeNotifier {
   final SearchDictionary _searchDictionary;
 
-  List<DictionaryEntry> _allEntries = [];
-  List<DictionaryEntry> get allEntries => _allEntries;
+  DictionaryState _state = const DictionaryState();
+  DictionaryState get state => _state;
 
-  List<DictionaryEntry> _filteredEntries = [];
-  List<DictionaryEntry> get filteredEntries => _filteredEntries;
+  DictionaryProvider(this._searchDictionary);
 
-  String _query = '';
-  String get query => _query;
-
-  bool _showFavorites = false;
-  bool get showFavorites => _showFavorites;
-
-  bool _isLoading = true;
-  bool get isLoading => _isLoading;
-
-  bool get isEmpty =>
-      _showFavorites ? _filteredEntries.isEmpty : _allEntries.isEmpty;
-
-  DictionaryProvider(this._searchDictionary) {
-    _loadAll();
-  }
-
-  Future<void> _loadAll() async {
-    _isLoading = true;
-    notifyListeners();
-    _allEntries = await _searchDictionary.getAll();
-    _isLoading = false;
-    _applyFilter();
-  }
-
-  Future<void> _applyFilter() async {
-    _isLoading = true;
+  Future<void> search(String query) async {
+    final trimmed = query.trim();
+    _state = _state.copyWith(
+      query: query,
+      status: trimmed.isEmpty ? DictionaryStatus.initial : DictionaryStatus.loading,
+      results: [],
+      errorMessage: null,
+    );
     notifyListeners();
 
-    List<DictionaryEntry> result;
-    if (_showFavorites) {
-      result = await _searchDictionary.getFavorites();
-    } else if (_query.isNotEmpty) {
-      result = await _searchDictionary.search(_query);
-    } else {
-      result = _allEntries;
+    if (trimmed.isEmpty) return;
+
+    try {
+      final results = await _searchDictionary(trimmed);
+      _state = _state.copyWith(
+        status: DictionaryStatus.success,
+        results: results,
+      );
+    } catch (e) {
+      _state = _state.copyWith(
+        status: DictionaryStatus.error,
+        errorMessage: 'Ошибка поиска: $e',
+      );
     }
 
-    _filteredEntries = result;
-    _isLoading = false;
     notifyListeners();
   }
 
-  void search(String query) {
-    _query = query;
-    _applyFilter();
+  void setQuery(String query) {
+    _state = _state.copyWith(query: query);
+    // Не вызываем notifyListeners — только обновляем query без перерисовки
   }
 
-  void toggleFavorites() {
-    _showFavorites = !_showFavorites;
-    // При переключении на избранное очищаем строку поиска
-    if (_showFavorites) {
-      _query = '';
-    }
-    _applyFilter();
-  }
-
-  void toggleFavorite(int entryId) {
-    _searchDictionary.toggleFavorite(entryId);
-    // Обновляем состояние в локальном списке
-    final idx = _allEntries.indexWhere((e) => e.id == entryId);
-    if (idx != -1) {
-      _allEntries[idx].isFavorite = !_allEntries[idx].isFavorite;
-    }
-    // Обновляем отображение
-    _applyFilter();
+  void clear() {
+    _state = const DictionaryState();
+    notifyListeners();
   }
 }
