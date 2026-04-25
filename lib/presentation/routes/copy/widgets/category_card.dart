@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Компактная карточка папки без фона. Правый клик / долгое нажатие — контекстное меню.
+/// Увеличенная карточка папки. Правый клик / долгое нажатие — контекстное меню.
 class CategoryCard extends StatelessWidget {
   final String id;
   final String name;
@@ -30,21 +30,21 @@ class CategoryCard extends StatelessWidget {
       onSecondaryTap: () => _showContextMenu(context),
       onLongPress: () => _showContextMenu(context),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
             Icon(
               id == 'favorites' ? Icons.favorite : Icons.folder,
-              size: 18,
+              size: 22,
               color: id == 'favorites'
                   ? Colors.red
                   : theme.colorScheme.primary,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 name,
-                style: const TextStyle(fontSize: 14),
+                style: const TextStyle(fontSize: 16),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -63,8 +63,8 @@ class CategoryCard extends StatelessWidget {
         PopupMenuItem(
           value: 'rename',
           child: ListTile(
-            leading: const Icon(Icons.edit, size: 20),
-            title: const Text('Переименовать', style: TextStyle(fontSize: 14)),
+            leading: const Icon(Icons.edit, size: 22),
+            title: const Text('Переименовать', style: TextStyle(fontSize: 16)),
             dense: true,
             contentPadding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
@@ -74,9 +74,9 @@ class CategoryCard extends StatelessWidget {
           PopupMenuItem(
             value: 'delete',
             child: ListTile(
-              leading: const Icon(Icons.delete, size: 20, color: Colors.red),
+              leading: const Icon(Icons.delete, size: 22, color: Colors.red),
               title: const Text('Удалить',
-                  style: TextStyle(fontSize: 14, color: Colors.red)),
+                  style: TextStyle(fontSize: 16, color: Colors.red)),
               dense: true,
               contentPadding: EdgeInsets.zero,
               visualDensity: VisualDensity.compact,

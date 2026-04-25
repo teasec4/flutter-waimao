@@ -11,10 +11,7 @@ class SettingsPage extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Настройки'),
-        backgroundColor: colorScheme.inversePrimary,
-      ),
+      
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

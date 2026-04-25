@@ -193,10 +193,10 @@ class _CopyPageState extends State<CopyPage> {
                   )
                 : ListView.separated(
                     padding:
-                        const EdgeInsets.only(top: 4, bottom: 80),
+                        const EdgeInsets.only(top: 8, bottom: 80),
                     itemCount: provider.categories.length,
                     separatorBuilder: (_, _) =>
-                        const Divider(height: 1, indent: 32),
+                        const Divider(height: 2, indent: 32),
                     itemBuilder: (context, index) {
                       final cat = provider.categories[index];
                       return CategoryCard(
@@ -243,13 +243,10 @@ class _CopyPageState extends State<CopyPage> {
                 // Верхняя панель: назад + заголовок
                 Container(
                   width: double.infinity,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .inversePrimary
-                      .withValues(alpha: 0.3),
+                  
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 4, vertical: 4),
+                        horizontal: 8, vertical: 6),
                     child: Column(
                       children: [
                         Row(
@@ -262,7 +259,7 @@ class _CopyPageState extends State<CopyPage> {
                               },
                               tooltip: 'Назад к папкам',
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 8),
                             Icon(
                               isFavorites
                                   ? Icons.favorite
@@ -272,9 +269,9 @@ class _CopyPageState extends State<CopyPage> {
                                   : Theme.of(context)
                                       .colorScheme
                                       .primary,
-                              size: 20,
+                              size: 24,
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 isFavorites
@@ -283,14 +280,14 @@ class _CopyPageState extends State<CopyPage> {
                                             .activeCategory?.name ??
                                         '',
                                 style: const TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 18,
                                     fontWeight: FontWeight.w500),
                               ),
                             ),
                             if (!isFavorites)
                               IconButton(
                                 icon:
-                                    const Icon(Icons.edit, size: 18),
+                                    const Icon(Icons.edit, size: 20),
                                 tooltip: 'Переименовать',
                                 onPressed: () =>
                                     _showAddCategoryDialog(
@@ -304,7 +301,7 @@ class _CopyPageState extends State<CopyPage> {
                         // Поиск
                         Padding(
                           padding: const EdgeInsets.only(
-                              left: 8, right: 8, bottom: 6),
+                              left: 8, right: 8, bottom: 6, top: 8),
                           child: TextField(
                             controller: _searchController,
                             decoration: InputDecoration(
