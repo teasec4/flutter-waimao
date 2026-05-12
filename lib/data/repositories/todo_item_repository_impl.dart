@@ -57,18 +57,4 @@ class TodoItemRepositoryImpl implements TodoItemRepository {
     if (existing == null) return;
     await isar.writeTxn(() => isar.todoItemCollections.delete(existing.id));
   }
-
-  @override
-  Future<void> reorderItems(List<TodoItem> items) async {
-    final all = await isar.todoItemCollections.filter().listIdEqualTo(items.first.listId).findAll();
-    await isar.writeTxn(() async {
-      for (var i = 0; i < items.length; i++) {
-        final match = all.where((c) => c.uuid == items[i].id).firstOrNull;
-        if (match != null) {
-          match.sortOrder = i;
-          await isar.todoItemCollections.put(match);
-        }
-      }
-    });
-  }
 }

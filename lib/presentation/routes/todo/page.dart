@@ -140,34 +140,21 @@ class _TodoPageState extends State<TodoPage> {
                     ],
                   ),
                 )
-              : ReorderableListView.builder(
-                  padding: const EdgeInsets.only(top: 8, bottom: 80),
-                  buildDefaultDragHandles: false,
-                  itemCount: provider.lists.length,
-                  onReorder: (oldIndex, newIndex) {
-                    final updated = List<TodoList>.from(provider.lists);
-                    final item = updated.removeAt(oldIndex);
-                    updated.insert(newIndex, item);
-                    provider.reorderLists(updated);
-                  },
-                  proxyDecorator: (child, index, animation) => Material(
-                    elevation: 4,
-                    borderRadius: BorderRadius.circular(12),
-                    child: child,
-                  ),
-                  itemBuilder: (context, index) {
-                    final list = provider.lists[index];
-                    return TodoListCard(
-                      key: ValueKey(list.id),
-                      id: list.id,
-                      name: list.name,
-                      draggableIndex: index,
-                      onTap: () => provider.selectList(list),
-                      onRename: () => _showRenameDialog(list.id, list.name),
-                      onDelete: () => _confirmDeleteList(provider, list),
-                    );
-                  },
-                ),
+            : ListView.builder(
+                padding: const EdgeInsets.only(top: 8, bottom: 80),
+                itemCount: provider.lists.length,
+                itemBuilder: (context, index) {
+                  final list = provider.lists[index];
+                  return TodoListCard(
+                    key: ValueKey(list.id),
+                    id: list.id,
+                    name: list.name,
+                    onTap: () => provider.selectList(list),
+                    onRename: () => _showRenameDialog(list.id, list.name),
+                    onDelete: () => _confirmDeleteList(provider, list),
+                  );
+                },
+              ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddListDialog,
         child: const Icon(Icons.add),
@@ -207,21 +194,9 @@ class _TodoPageState extends State<TodoPage> {
                 ],
               ),
             )
-          : ReorderableListView.builder(
+          : ListView.builder(
               padding: const EdgeInsets.only(top: 8, bottom: 80),
-              buildDefaultDragHandles: false,
               itemCount: allOrdered.length,
-              onReorder: (oldIndex, newIndex) {
-                final updated = List<TodoItem>.from(allOrdered);
-                final item = updated.removeAt(oldIndex);
-                updated.insert(newIndex, item);
-                provider.reorderItems(updated);
-              },
-              proxyDecorator: (child, index, animation) => Material(
-                elevation: 4,
-                borderRadius: BorderRadius.circular(12),
-                child: child,
-              ),
               itemBuilder: (context, index) {
                 final item = allOrdered[index];
                 return TodoItemCard(
@@ -229,7 +204,6 @@ class _TodoPageState extends State<TodoPage> {
                   id: item.id,
                   text: item.text,
                   isDone: item.isDone,
-                  draggableIndex: index,
                   onToggle: () => provider.toggleDone(item.id),
                   onDelete: () => _confirmDeleteItem(provider, item),
                 );

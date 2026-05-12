@@ -45,18 +45,4 @@ class TodoListRepositoryImpl implements TodoListRepository {
     if (existing == null) return;
     await isar.writeTxn(() => isar.todoListCollections.delete(existing.id));
   }
-
-  @override
-  Future<void> reorderLists(List<TodoList> lists) async {
-    final all = await isar.todoListCollections.where().findAll();
-    await isar.writeTxn(() async {
-      for (var i = 0; i < lists.length; i++) {
-        final match = all.where((c) => c.uuid == lists[i].id).firstOrNull;
-        if (match != null) {
-          match.name = lists[i].name;
-          await isar.todoListCollections.put(match);
-        }
-      }
-    });
-  }
 }

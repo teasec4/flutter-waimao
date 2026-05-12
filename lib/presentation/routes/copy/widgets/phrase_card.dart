@@ -5,7 +5,6 @@ class PhraseCard extends StatelessWidget {
   final String id;
   final String text;
   final bool isFavorite;
-  final int? draggableIndex;
   final VoidCallback onCopy;
   final VoidCallback onToggleFavorite;
   final VoidCallback onEdit;
@@ -16,7 +15,6 @@ class PhraseCard extends StatelessWidget {
     required this.id,
     required this.text,
     this.isFavorite = false,
-    this.draggableIndex,
     required this.onCopy,
     required this.onToggleFavorite,
     required this.onEdit,
@@ -74,29 +72,9 @@ class PhraseCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Row(
-        children: [
-          // Drag handle — ОТДЕЛЬНО от InkWell
-          if (draggableIndex != null)
-            ReorderableDragStartListener(
-              index: draggableIndex!,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: Icon(
-                  Icons.drag_indicator,
-                  size: 22,
-                  color: theme.colorScheme.onSurfaceVariant.withAlpha(128),
-                ),
-              ),
-            ),
-          // Тело карточки — InkWell
-          Expanded(
-            child: InkWell(
-              onTap: onCopy,
-              child: cardBody,
-            ),
-          ),
-        ],
+      child: InkWell(
+        onTap: onCopy,
+        child: cardBody,
       ),
     );
   }

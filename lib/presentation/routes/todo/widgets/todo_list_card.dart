@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 class TodoListCard extends StatelessWidget {
   final String id;
   final String name;
-  final int? draggableIndex;
   final VoidCallback onTap;
   final VoidCallback onRename;
   final VoidCallback onDelete;
@@ -12,7 +11,6 @@ class TodoListCard extends StatelessWidget {
     super.key,
     required this.id,
     required this.name,
-    this.draggableIndex,
     required this.onTap,
     required this.onRename,
     required this.onDelete,
@@ -25,16 +23,6 @@ class TodoListCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
       child: Row(
         children: [
-          // Drag handle — отдельно
-          if (draggableIndex != null)
-            ReorderableDragStartListener(
-              index: draggableIndex!,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Icon(Icons.drag_indicator,
-                    color: theme.colorScheme.onSurfaceVariant),
-              ),
-            ),
           // Тело карточки — InkWell
           Expanded(
             child: InkWell(

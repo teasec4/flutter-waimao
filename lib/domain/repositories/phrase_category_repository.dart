@@ -5,5 +5,4 @@ abstract class PhraseCategoryRepository {
   Future<void> addCategory(PhraseCategory category);
   Future<void> renameCategory(String id, String newName);
   Future<void> removeCategory(String id);
-  Future<void> reorder(List<PhraseCategory> categories);
 }

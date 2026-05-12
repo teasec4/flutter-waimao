@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import 'package:paste_tool/domain/entities/phrase.dart';
-import 'package:paste_tool/domain/entities/phrase_category.dart';
 import 'package:paste_tool/presentation/providers/phrase_provider.dart';
 import 'package:paste_tool/presentation/routes/copy/widgets/category_card.dart';
 import 'package:paste_tool/presentation/routes/copy/widgets/phrase_card.dart';
@@ -222,7 +220,7 @@ class _CopyPageState extends State<CopyPage> {
             .where((c) => !provider.isFavoritesById(c.id))
             .toList();
     final favorites = allCategories.where((c) => provider.isFavoritesById(c.id)).toList();
-    final reordereable = allCategories.where((c) => !provider.isFavoritesById(c.id)).toList();
+    final regularCategories = allCategories.where((c) => !provider.isFavoritesById(c.id)).toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -276,59 +274,28 @@ class _CopyPageState extends State<CopyPage> {
                               ),
                             if (favorites.isNotEmpty)
                               const Divider(height: 2, indent: 32),
-                            // Остальные категории — перетаскиваемые
-                            ReorderableListView.builder(
-                              shrinkWrap: true,
-                              physics:
-                                  const NeverScrollableScrollPhysics(),
-                              buildDefaultDragHandles: false,
-                              itemCount: reordereable.length,
-                              onReorder: (oldIndex, newIndex) {
-                                final updated =
-                                    List<PhraseCategory>.from(
-                                        reordereable);
-                                final item =
-                                    updated.removeAt(oldIndex);
-                                updated.insert(newIndex, item);
-                                provider.reorderCategories(
-                                    updated);
-                              },
-                              proxyDecorator:
-                                  (child, index, animation) =>
-                                      Material(
-                                elevation: 4,
-                                borderRadius:
-                                    BorderRadius.circular(8),
-                                child: child,
+                            // Остальные категории
+                            ...regularCategories.map((cat) => CategoryCard(
+                              key: ValueKey(cat.id),
+                              id: cat.id,
+                              name: cat.name,
+                              phraseCount:
+                                  provider.phraseCounts[cat.id] ?? 0,
+                              onTap: () => provider
+                                  .selectCategory(cat),
+                              onRename: () =>
+                                  _showAddCategoryDialog(
+                                id: cat.id,
+                                initialName: cat.name,
                               ),
-                              itemBuilder: (context, index) {
-                                final cat = reordereable[index];
-                                return CategoryCard(
-                                  key: ValueKey(cat.id),
-                                  id: cat.id,
-                                  name: cat.name,
-                                  phraseCount:
-                                      provider.phraseCounts[
-                                              cat.id] ??
-                                          0,
-                                  draggableIndex: index,
-                                  onTap: () => provider
-                                      .selectCategory(cat),
-                                  onRename: () =>
-                                      _showAddCategoryDialog(
-                                    id: cat.id,
-                                    initialName: cat.name,
-                                  ),
-                                  onDelete: () =>
-                                      _confirmDeleteCategory(
-                                          provider,
-                                          cat.id,
-                                          cat.name),
-                                  canDelete: provider
-                                      .canDeleteCategory(cat.id),
-                                );
-                              },
-                            ),
+                              onDelete: () =>
+                                  _confirmDeleteCategory(
+                                      provider,
+                                      cat.id,
+                                      cat.name),
+                              canDelete: provider
+                                  .canDeleteCategory(cat.id),
+                            )),
                           ],
                         ),
                   Positioned(
@@ -505,28 +472,10 @@ class _CopyPageState extends State<CopyPage> {
                           child: CircularProgressIndicator())
                       : provider.phrases.isEmpty
                           ? _buildEmptyPhrases(isFavorites, provider)
-                          : ReorderableListView.builder(
+                          : ListView.builder(
                               padding: const EdgeInsets.only(
                                   top: 2, bottom: 80),
-                              buildDefaultDragHandles: false,
                               itemCount: provider.phrases.length,
-                              onReorder: (oldIndex, newIndex) {
-                                final updated =
-                                    List<Phrase>.from(
-                                        provider.phrases);
-                                final item =
-                                    updated.removeAt(oldIndex);
-                                updated.insert(newIndex, item);
-                                provider.reorderPhrases(updated);
-                              },
-                              proxyDecorator:
-                                  (child, index, animation) =>
-                                      Material(
-                                elevation: 4,
-                                borderRadius:
-                                    BorderRadius.circular(8),
-                                child: child,
-                              ),
                               itemBuilder: (context, index) {
                                 final phrase =
                                     provider.phrases[index];
@@ -535,7 +484,6 @@ class _CopyPageState extends State<CopyPage> {
                                   id: phrase.id,
                                   text: phrase.text,
                                   isFavorite: phrase.isFavorite,
-                                  draggableIndex: index,
                                   onCopy: () =>
                                       _copyToClipboard(
                                           phrase.text),

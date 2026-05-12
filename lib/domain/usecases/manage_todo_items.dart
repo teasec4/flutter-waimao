@@ -37,5 +37,4 @@ class ManageTodoItems {
 
   Future<void> deleteItem(String id) => repository.deleteItem(id);
 
-  Future<void> reorder(List<TodoItem> items) => repository.reorderItems(items);
 }

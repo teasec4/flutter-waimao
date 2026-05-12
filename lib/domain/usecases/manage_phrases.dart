@@ -44,6 +44,4 @@ class ManagePhrases {
   Future<int> countPhrasesByCategory(String categoryId) =>
       repository.countPhrasesByCategory(categoryId);
 
-  Future<void> reorderPhrases(List<Phrase> phrases) =>
-      repository.reorderPhrases(phrases);
 }

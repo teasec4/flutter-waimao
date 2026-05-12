@@ -5,5 +5,4 @@ abstract class TodoListRepository {
   Future<void> addList(TodoList list);
   Future<void> updateList(TodoList list);
   Future<void> deleteList(String id);
-  Future<void> reorderLists(List<TodoList> lists);
 }

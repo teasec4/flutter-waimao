@@ -26,5 +26,4 @@ class ManageTodoLists {
 
   Future<void> deleteList(String id) => repository.deleteList(id);
 
-  Future<void> reorder(List<TodoList> lists) => repository.reorderLists(lists);
 }

@@ -65,17 +65,6 @@ class TodoProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> reorderLists(List<TodoList> updated) async {
-    try {
-      await _manageLists.reorder(updated);
-      _lists = updated;
-      notifyListeners();
-    } catch (e) {
-      _lastError = 'Ошибка сортировки: $e';
-      notifyListeners();
-    }
-  }
-
   Future<void> selectList(TodoList list) async {
     _activeList = list;
     notifyListeners();
@@ -117,17 +106,6 @@ class TodoProvider extends ChangeNotifier {
       await _loadItems();
     } catch (e) {
       _lastError = 'Ошибка удаления задачи: $e';
-      notifyListeners();
-    }
-  }
-
-  Future<void> reorderItems(List<TodoItem> updated) async {
-    try {
-      await _manageItems.reorder(updated);
-      _items = updated;
-      notifyListeners();
-    } catch (e) {
-      _lastError = 'Ошибка сортировки: $e';
       notifyListeners();
     }
   }

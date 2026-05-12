@@ -5,5 +5,4 @@ abstract class TodoItemRepository {
   Future<void> addItem(TodoItem item);
   Future<void> updateItem(TodoItem item);
   Future<void> deleteItem(String id);
-  Future<void> reorderItems(List<TodoItem> items);
 }

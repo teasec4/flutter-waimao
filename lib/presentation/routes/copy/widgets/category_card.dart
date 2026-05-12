@@ -6,7 +6,6 @@ class CategoryCard extends StatelessWidget {
   final String name;
   final bool isFirst;
   final int phraseCount;
-  final int? draggableIndex;
   final VoidCallback onTap;
   final VoidCallback onRename;
   final VoidCallback onDelete;
@@ -18,7 +17,6 @@ class CategoryCard extends StatelessWidget {
     required this.name,
     this.isFirst = false,
     this.phraseCount = 0,
-    this.draggableIndex,
     required this.onTap,
     required this.onRename,
     required this.onDelete,
@@ -73,31 +71,11 @@ class CategoryCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Row(
-        children: [
-          // Drag handle — ОТДЕЛЬНО от GestureDetector
-          if (draggableIndex != null)
-            ReorderableDragStartListener(
-              index: draggableIndex!,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: Icon(
-                  Icons.drag_indicator,
-                  size: 22,
-                  color: theme.colorScheme.onSurfaceVariant.withAlpha(128),
-                ),
-              ),
-            ),
-          // Тело карточки — GestureDetector
-          Expanded(
-            child: GestureDetector(
-              onTap: onTap,
-              onSecondaryTap: () => _showContextMenu(context),
-              onLongPress: () => _showContextMenu(context),
-              child: cardBody,
-            ),
-          ),
-        ],
+      child: GestureDetector(
+        onTap: onTap,
+        onSecondaryTap: () => _showContextMenu(context),
+        onLongPress: () => _showContextMenu(context),
+        child: cardBody,
       ),
     );
   }

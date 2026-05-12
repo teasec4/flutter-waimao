@@ -102,22 +102,4 @@ class PhraseRepositoryImpl implements PhraseRepository {
         .categoryIdEqualTo(categoryId)
         .count();
   }
-
-  @override
-  Future<void> reorderPhrases(List<Phrase> phrases) async {
-    await isar.writeTxn(() async {
-      for (var i = 0; i < phrases.length; i++) {
-        final collection = PhraseCollection.fromEntity(
-          Phrase(
-            id: phrases[i].id,
-            text: phrases[i].text,
-            categoryId: phrases[i].categoryId,
-            isFavorite: phrases[i].isFavorite,
-            sortOrder: i,
-          ),
-        );
-        await isar.phraseCollections.put(collection);
-      }
-    });
-  }
 }

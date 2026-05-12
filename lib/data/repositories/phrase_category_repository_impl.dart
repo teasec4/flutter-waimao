@@ -51,20 +51,4 @@ class PhraseCategoryRepositoryImpl implements PhraseCategoryRepository {
       });
     }
   }
-
-  @override
-  Future<void> reorder(List<PhraseCategory> categories) async {
-    await isar.writeTxn(() async {
-      for (var i = 0; i < categories.length; i++) {
-        final collection = PhraseCategoryCollection.fromEntity(
-          PhraseCategory(
-            id: categories[i].id,
-            name: categories[i].name,
-            sortOrder: i,
-          ),
-        );
-        await isar.phraseCategoryCollections.put(collection);
-      }
-    });
-  }
 }

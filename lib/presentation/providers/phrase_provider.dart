@@ -121,32 +121,6 @@ class PhraseProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> reorderCategories(List<PhraseCategory> categories) async {
-    try {
-      await _manageCategories.reorder(categories);
-      _categories = await _manageCategories.getCategories();
-      notifyListeners();
-    } catch (e) {
-      _lastError = 'Ошибка сортировки категорий: $e';
-      notifyListeners();
-    }
-  }
-
-  Future<void> reorderPhrases(List<Phrase> phrases) async {
-    try {
-      await _managePhrases.reorderPhrases(phrases);
-      if (isFavoritesCategory) {
-        await _loadAllPhrases();
-        _phrases = _allPhrases.where((p) => p.isFavorite).toList();
-      } else {
-        await _refreshPhrases();
-      }
-    } catch (e) {
-      _lastError = 'Ошибка сортировки фраз: $e';
-      notifyListeners();
-    }
-  }
-
   Future<void> selectCategory(PhraseCategory? category) async {
     _activeCategory = category;
     _searchQuery = '';

@@ -36,6 +36,4 @@ class ManageCategories {
     await _phraseRepository.deletePhrasesByCategory(id);
   }
 
-  Future<void> reorder(List<PhraseCategory> categories) =>
-      repository.reorder(categories);
 }
