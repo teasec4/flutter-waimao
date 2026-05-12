@@ -4,6 +4,7 @@ import 'package:paste_tool/presentation/routes/layout.dart';
 import 'package:paste_tool/presentation/routes/copy/page.dart';
 import 'package:paste_tool/presentation/routes/dictionary/page.dart';
 import 'package:paste_tool/presentation/routes/settings/page.dart';
+import 'package:paste_tool/presentation/routes/todo/page.dart';
 import 'package:paste_tool/presentation/routes/volume/page.dart';
 
 final router = GoRouter(
@@ -19,6 +20,15 @@ final router = GoRouter(
               path: '/copy',
               pageBuilder: (context, state) =>
                   const NoTransitionPage(child: CopyPage()),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/todo',
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: TodoPage()),
             ),
           ],
         ),

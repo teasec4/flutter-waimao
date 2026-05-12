@@ -1,0 +1,11 @@
+class TodoList {
+  final String id;
+  final String name;
+  final DateTime createdAt;
+
+  const TodoList({
+    required this.id,
+    required this.name,
+    required this.createdAt,
+  });
+}
