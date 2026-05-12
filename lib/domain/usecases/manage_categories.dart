@@ -1,31 +1,37 @@
+import 'package:uuid/uuid.dart';
+
 import '../entities/phrase_category.dart';
 import '../repositories/phrase_category_repository.dart';
+import '../repositories/phrase_repository.dart';
+
+const _uuid = Uuid();
 
 class ManageCategories {
   final PhraseCategoryRepository repository;
+  final PhraseRepository _phraseRepository;
 
-  ManageCategories(this.repository);
+  ManageCategories(this.repository, this._phraseRepository);
 
-  List<PhraseCategory> getCategories() => repository.getCategories();
+  Future<List<PhraseCategory>> getCategories() => repository.getCategories();
 
-  void addCategoryRaw(PhraseCategory category) {
-    repository.addCategory(category);
-  }
-
-  void addCategory(String name) {
+  Future<void> addCategory(String name) async {
     final category = PhraseCategory(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: _uuid.v4(),
       name: name,
-      sortOrder: repository.getCategories().length,
     );
-    repository.addCategory(category);
+    await repository.addCategory(category);
   }
 
-  void renameCategory(String id, String newName) {
-    repository.renameCategory(id, newName);
+  Future<void> addCategoryRaw(PhraseCategory category) {
+    return repository.addCategory(category);
   }
 
-  void removeCategory(String id) {
-    repository.removeCategory(id);
+  Future<void> renameCategory(String id, String newName) {
+    return repository.renameCategory(id, newName);
+  }
+
+  Future<void> removeCategory(String id) async {
+    await repository.removeCategory(id);
+    await _phraseRepository.deletePhrasesByCategory(id);
   }
 }

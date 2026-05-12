@@ -88,4 +88,12 @@ class PhraseRepositoryImpl implements PhraseRepository {
       );
     }
   }
+
+  @override
+  Future<int> countPhrasesByCategory(String categoryId) async {
+    return isar.phraseCollections
+        .filter()
+        .categoryIdEqualTo(categoryId)
+        .count();
+  }
 }

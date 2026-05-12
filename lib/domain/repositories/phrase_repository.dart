@@ -8,4 +8,5 @@ abstract class PhraseRepository {
   Future<void> updatePhraseFavorite(String id, bool isFavorite);
   Future<void> deletePhrase(String id);
   Future<void> deletePhrasesByCategory(String categoryId);
+  Future<int> countPhrasesByCategory(String categoryId);
 }

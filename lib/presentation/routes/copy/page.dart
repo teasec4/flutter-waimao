@@ -34,6 +34,28 @@ class _CopyPageState extends State<CopyPage> {
     );
   }
 
+  void _pasteFromClipboard(PhraseProvider provider) async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (!mounted) return;
+    final text = data?.text;
+    if (text != null && text.isNotEmpty) {
+      provider.addPhrase(text);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Вставлено: "${text.length > 30 ? '${text.substring(0, 30)}…' : text}"'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Буфер обмена пуст'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   void _showPhraseDialog({String? id, String? initialText}) {
     final isEditing = id != null;
     _contentController.text = initialText ?? '';
@@ -127,8 +149,18 @@ class _CopyPageState extends State<CopyPage> {
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
-              provider.deleteCategory(id);
               Navigator.pop(ctx);
+              provider.deleteCategory(id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Папка «$name» удалена'),
+                  duration: const Duration(seconds: 4),
+                  action: SnackBarAction(
+                    label: 'Отменить',
+                    onPressed: () => provider.undoDeleteCategory(),
+                  ),
+                ),
+              );
             },
             child: const Text('Удалить'),
           ),
@@ -150,8 +182,18 @@ class _CopyPageState extends State<CopyPage> {
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
-              provider.deletePhrase(id);
               Navigator.pop(ctx);
+              provider.deletePhrase(id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Фраза удалена'),
+                  duration: const Duration(seconds: 4),
+                  action: SnackBarAction(
+                    label: 'Отменить',
+                    onPressed: () => provider.undoDeletePhrase(),
+                  ),
+                ),
+              );
             },
             child: const Text('Удалить'),
           ),
@@ -202,6 +244,8 @@ class _CopyPageState extends State<CopyPage> {
                       return CategoryCard(
                         id: cat.id,
                         name: cat.name,
+                        phraseCount:
+                            provider.phraseCounts[cat.id] ?? 0,
                         isFirst: index == 0,
                         onTap: () =>
                             provider.selectCategory(cat),
@@ -296,6 +340,13 @@ class _CopyPageState extends State<CopyPage> {
                                       provider.activeCategory?.name,
                                 ),
                               ),
+                            IconButton(
+                              icon: const Icon(Icons.content_paste,
+                                  size: 20),
+                              tooltip: 'Вставить из буфера',
+                              onPressed: () =>
+                                  _pasteFromClipboard(provider),
+                            ),
                           ],
                         ),
                         // Поиск

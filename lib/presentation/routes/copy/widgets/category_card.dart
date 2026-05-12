@@ -5,6 +5,7 @@ class CategoryCard extends StatelessWidget {
   final String id;
   final String name;
   final bool isFirst;
+  final int phraseCount;
   final VoidCallback onTap;
   final VoidCallback onRename;
   final VoidCallback onDelete;
@@ -15,6 +16,7 @@ class CategoryCard extends StatelessWidget {
     required this.id,
     required this.name,
     this.isFirst = false,
+    this.phraseCount = 0,
     required this.onTap,
     required this.onRename,
     required this.onDelete,
@@ -49,10 +51,35 @@ class CategoryCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 2,
+              ),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _formatCount(phraseCount),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatCount(int count) {
+    if (count >= 1000) {
+      return '${(count / 1000).toStringAsFixed(1)}k';
+    }
+    return count.toString();
   }
 
   void _showContextMenu(BuildContext context) {

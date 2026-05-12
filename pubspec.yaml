@@ -19,6 +19,7 @@ dependencies:
   # Isar Community DB
   isar_community: ^3.3.2
   isar_community_flutter_libs: ^3.3.2
+  uuid: ^4.5.3
 
 dev_dependencies:
   flutter_test:

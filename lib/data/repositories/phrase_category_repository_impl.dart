@@ -9,53 +9,52 @@ class PhraseCategoryRepositoryImpl implements PhraseCategoryRepository {
   PhraseCategoryRepositoryImpl({required this.isar});
 
   @override
-  List<PhraseCategory> getCategories() {
+  Future<List<PhraseCategory>> getCategories() async {
     return isar.phraseCategoryCollections
         .where()
         .sortBySortOrder()
-        .findAllSync()
-        .map((c) => c.toEntity())
-        .toList();
+        .findAll()
+        .then((list) => list.map((c) => c.toEntity()).toList());
   }
 
   @override
-  void addCategory(PhraseCategory category) {
+  Future<void> addCategory(PhraseCategory category) async {
     final collection = PhraseCategoryCollection.fromEntity(category);
-    isar.writeTxnSync(() => isar.phraseCategoryCollections.putSync(collection));
+    await isar.writeTxn(() => isar.phraseCategoryCollections.put(collection));
   }
 
   @override
-  void renameCategory(String id, String newName) {
-    final existing = isar.phraseCategoryCollections
+  Future<void> renameCategory(String id, String newName) async {
+    final existing = await isar.phraseCategoryCollections
         .filter()
         .uuidEqualTo(id)
-        .findAllSync();
+        .findAll();
     if (existing.isNotEmpty) {
-      isar.writeTxnSync(() {
+      await isar.writeTxn(() async {
         existing.first.name = newName;
-        isar.phraseCategoryCollections.putSync(existing.first);
+        await isar.phraseCategoryCollections.put(existing.first);
       });
     }
   }
 
   @override
-  void removeCategory(String id) {
-    final existing = isar.phraseCategoryCollections
+  Future<void> removeCategory(String id) async {
+    final existing = await isar.phraseCategoryCollections
         .filter()
         .uuidEqualTo(id)
-        .findAllSync();
+        .findAll();
     if (existing.isNotEmpty) {
-      isar.writeTxnSync(
-        () => isar.phraseCategoryCollections.deleteAllSync(
+      await isar.writeTxn(() async {
+        await isar.phraseCategoryCollections.deleteAll(
           existing.map((e) => e.id).toList(),
-        ),
-      );
+        );
+      });
     }
   }
 
   @override
-  void reorder(List<PhraseCategory> categories) {
-    isar.writeTxnSync(() {
+  Future<void> reorder(List<PhraseCategory> categories) async {
+    await isar.writeTxn(() async {
       for (var i = 0; i < categories.length; i++) {
         final collection = PhraseCategoryCollection.fromEntity(
           PhraseCategory(
@@ -64,7 +63,7 @@ class PhraseCategoryRepositoryImpl implements PhraseCategoryRepository {
             sortOrder: i,
           ),
         );
-        isar.phraseCategoryCollections.putSync(collection);
+        await isar.phraseCategoryCollections.put(collection);
       }
     });
   }

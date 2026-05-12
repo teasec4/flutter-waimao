@@ -70,7 +70,7 @@ final class AppDependencies {
 
     i.managePhrases = ManagePhrases(i.phraseRepository);
     i.manageVolume = ManageVolume(i.volumeRepository);
-    i.manageCategories = ManageCategories(i.phraseCategoryRepository);
+    i.manageCategories = ManageCategories(i.phraseCategoryRepository, i.phraseRepository);
     i.manageTrucks = ManageTrucks(i.truckRepository);
     i.manageSessions = ManageSessions(repository: i.volumeSessionRepository);
     i.searchDictionary = SearchDictionary(repository: i.dictionaryRepository);

@@ -1,5 +1,9 @@
+import 'package:uuid/uuid.dart';
+
 import '../entities/phrase.dart';
 import '../repositories/phrase_repository.dart';
+
+const _uuid = Uuid();
 
 class ManagePhrases {
   final PhraseRepository repository;
@@ -13,10 +17,14 @@ class ManagePhrases {
 
   Future<void> addPhrase(String text, {String? categoryId}) async {
     final phrase = Phrase(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: _uuid.v4(),
       text: text,
       categoryId: categoryId,
     );
+    await repository.addPhrase(phrase);
+  }
+
+  Future<void> addPhraseRaw(Phrase phrase) async {
     await repository.addPhrase(phrase);
   }
 
@@ -31,4 +39,7 @@ class ManagePhrases {
   Future<void> deletePhrase(String id) async {
     await repository.deletePhrase(id);
   }
+
+  Future<int> countPhrasesByCategory(String categoryId) =>
+      repository.countPhrasesByCategory(categoryId);
 }
