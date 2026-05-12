@@ -63,6 +63,8 @@ class PhraseProvider extends ChangeNotifier {
   bool get isFavoritesCategory =>
       _activeCategory?.id == favoritesCategoryId;
 
+  bool isFavoritesById(String id) => id == favoritesCategoryId;
+
   void setSearchQuery(String query) {
     _searchQuery = query;
     notifyListeners();

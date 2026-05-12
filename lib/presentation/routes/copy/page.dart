@@ -16,6 +16,7 @@ class CopyPage extends StatefulWidget {
 class _CopyPageState extends State<CopyPage> {
   final _contentController = TextEditingController();
   final _searchController = TextEditingController();
+  bool _showFavorites = true;
 
   @override
   void dispose() {
@@ -212,66 +213,127 @@ class _CopyPageState extends State<CopyPage> {
   }
 
   Widget _buildCategoriesView(PhraseProvider provider) {
+    // Фильтруем категории
+    final categories = _showFavorites
+        ? provider.categories
+        : provider.categories
+            .where((c) => !provider.isFavoritesById(c.id))
+            .toList();
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        return Stack(
+        return Column(
           children: [
-            provider.categories.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.folder_open,
-                            size: 64, color: Colors.grey),
-                        const SizedBox(height: 16),
-                        const Text('Нет папок',
-                            style: TextStyle(
-                                fontSize: 18, color: Colors.grey)),
-                        const SizedBox(height: 8),
-                        const Text('Нажмите + чтобы создать',
-                            style: TextStyle(color: Colors.grey)),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
-                    padding:
-                        const EdgeInsets.only(top: 8, bottom: 80),
-                    itemCount: provider.categories.length,
-                    separatorBuilder: (_, _) =>
-                        const Divider(height: 2, indent: 32),
-                    itemBuilder: (context, index) {
-                      final cat = provider.categories[index];
-                      return CategoryCard(
-                        id: cat.id,
-                        name: cat.name,
-                        phraseCount:
-                            provider.phraseCounts[cat.id] ?? 0,
-                        isFirst: index == 0,
-                        onTap: () =>
-                            provider.selectCategory(cat),
-                        onRename: () => _showAddCategoryDialog(
-                          id: cat.id,
-                          initialName: cat.name,
+            // Быстрые настройки
+            _buildQuickSettingsPanel(),
+            Expanded(
+              child: Stack(
+                children: [
+                  categories.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment:
+                                MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.folder_open,
+                                  size: 64, color: Colors.grey),
+                              const SizedBox(height: 16),
+                              const Text('Нет папок',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.grey)),
+                              const SizedBox(height: 8),
+                              const Text(
+                                  'Нажмите + чтобы создать',
+                                  style: TextStyle(
+                                      color: Colors.grey)),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.only(
+                              top: 8, bottom: 80),
+                          itemCount: categories.length,
+                          separatorBuilder: (_, _) =>
+                              const Divider(
+                                  height: 2, indent: 32),
+                          itemBuilder: (context, index) {
+                            final cat = categories[index];
+                            return CategoryCard(
+                              id: cat.id,
+                              name: cat.name,
+                              phraseCount:
+                                  provider.phraseCounts[
+                                          cat.id] ??
+                                      0,
+                              isFirst: index == 0,
+                              onTap: () =>
+                                  provider.selectCategory(cat),
+                              onRename: () =>
+                                  _showAddCategoryDialog(
+                                id: cat.id,
+                                initialName: cat.name,
+                              ),
+                              onDelete: () =>
+                                  _confirmDeleteCategory(
+                                      provider, cat.id, cat.name),
+                              canDelete: provider
+                                  .canDeleteCategory(cat.id),
+                            );
+                          },
                         ),
-                        onDelete: () =>
-                            _confirmDeleteCategory(
-                                provider, cat.id, cat.name),
-                        canDelete:
-                            provider.canDeleteCategory(cat.id),
-                      );
-                    },
+                  Positioned(
+                    right: 16,
+                    bottom: 16,
+                    child: FloatingActionButton(
+                      onPressed: () => _showAddCategoryDialog(),
+                      child:
+                          const Icon(Icons.create_new_folder),
+                    ),
                   ),
-            Positioned(
-              right: 16,
-              bottom: 16,
-              child: FloatingActionButton(
-                onPressed: () => _showAddCategoryDialog(),
-                child: const Icon(Icons.create_new_folder),
+                ],
               ),
             ),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildQuickSettingsPanel() {
+    return Container(
+      width: double.infinity,
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.5),
+      child: Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: Row(
+          children: [
+            Icon(Icons.tune,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Text(
+              'Показать избранное',
+              style: TextStyle(
+                fontSize: 13,
+                color:
+                    Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const Spacer(),
+            Switch(
+              value: _showFavorites,
+              onChanged: (v) => setState(() => _showFavorites = v),
+              materialTapTargetSize:
+                  MaterialTapTargetSize.shrinkWrap,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
