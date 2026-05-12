@@ -15,11 +15,12 @@ class ManagePhrases {
 
   Future<List<Phrase>> loadAllPhrases() => repository.getAllPhrases();
 
-  Future<void> addPhrase(String text, {String? categoryId}) async {
+  Future<void> addPhrase(String text, {String? categoryId, int sortOrder = 0}) async {
     final phrase = Phrase(
       id: _uuid.v4(),
       text: text,
       categoryId: categoryId,
+      sortOrder: sortOrder,
     );
     await repository.addPhrase(phrase);
   }
@@ -42,4 +43,7 @@ class ManagePhrases {
 
   Future<int> countPhrasesByCategory(String categoryId) =>
       repository.countPhrasesByCategory(categoryId);
+
+  Future<void> reorderPhrases(List<Phrase> phrases) =>
+      repository.reorderPhrases(phrases);
 }

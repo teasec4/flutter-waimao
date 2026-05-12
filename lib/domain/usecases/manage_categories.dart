@@ -14,10 +14,11 @@ class ManageCategories {
 
   Future<List<PhraseCategory>> getCategories() => repository.getCategories();
 
-  Future<void> addCategory(String name) async {
+  Future<void> addCategory(String name, {int sortOrder = 0}) async {
     final category = PhraseCategory(
       id: _uuid.v4(),
       name: name,
+      sortOrder: sortOrder,
     );
     await repository.addCategory(category);
   }
@@ -34,4 +35,7 @@ class ManageCategories {
     await repository.removeCategory(id);
     await _phraseRepository.deletePhrasesByCategory(id);
   }
+
+  Future<void> reorder(List<PhraseCategory> categories) =>
+      repository.reorder(categories);
 }

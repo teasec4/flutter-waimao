@@ -27,8 +27,13 @@ const PhraseCollectionSchema = CollectionSchema(
       name: r'isFavorite',
       type: IsarType.bool,
     ),
-    r'text': PropertySchema(id: 2, name: r'text', type: IsarType.string),
-    r'uuid': PropertySchema(id: 3, name: r'uuid', type: IsarType.string),
+    r'sortOrder': PropertySchema(
+      id: 2,
+      name: r'sortOrder',
+      type: IsarType.long,
+    ),
+    r'text': PropertySchema(id: 3, name: r'text', type: IsarType.string),
+    r'uuid': PropertySchema(id: 4, name: r'uuid', type: IsarType.string),
   },
 
   estimateSize: _phraseCollectionEstimateSize,
@@ -85,8 +90,9 @@ void _phraseCollectionSerialize(
 ) {
   writer.writeString(offsets[0], object.categoryId);
   writer.writeBool(offsets[1], object.isFavorite);
-  writer.writeString(offsets[2], object.text);
-  writer.writeString(offsets[3], object.uuid);
+  writer.writeLong(offsets[2], object.sortOrder);
+  writer.writeString(offsets[3], object.text);
+  writer.writeString(offsets[4], object.uuid);
 }
 
 PhraseCollection _phraseCollectionDeserialize(
@@ -99,8 +105,9 @@ PhraseCollection _phraseCollectionDeserialize(
   object.categoryId = reader.readStringOrNull(offsets[0]);
   object.id = id;
   object.isFavorite = reader.readBool(offsets[1]);
-  object.text = reader.readString(offsets[2]);
-  object.uuid = reader.readString(offsets[3]);
+  object.sortOrder = reader.readLong(offsets[2]);
+  object.text = reader.readString(offsets[3]);
+  object.uuid = reader.readString(offsets[4]);
   return object;
 }
 
@@ -116,8 +123,10 @@ P _phraseCollectionDeserializeProp<P>(
     case 1:
       return (reader.readBool(offset)) as P;
     case 2:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -497,6 +506,61 @@ extension PhraseCollectionQueryFilter
   }
 
   QueryBuilder<PhraseCollection, PhraseCollection, QAfterFilterCondition>
+  sortOrderEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'sortOrder', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<PhraseCollection, PhraseCollection, QAfterFilterCondition>
+  sortOrderGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'sortOrder',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PhraseCollection, PhraseCollection, QAfterFilterCondition>
+  sortOrderLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'sortOrder',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PhraseCollection, PhraseCollection, QAfterFilterCondition>
+  sortOrderBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'sortOrder',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PhraseCollection, PhraseCollection, QAfterFilterCondition>
   textEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -815,6 +879,20 @@ extension PhraseCollectionQuerySortBy
     });
   }
 
+  QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy>
+  sortBySortOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sortOrder', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy>
+  sortBySortOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sortOrder', Sort.desc);
+    });
+  }
+
   QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy> sortByText() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'text', Sort.asc);
@@ -885,6 +963,20 @@ extension PhraseCollectionQuerySortThenBy
     });
   }
 
+  QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy>
+  thenBySortOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sortOrder', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy>
+  thenBySortOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sortOrder', Sort.desc);
+    });
+  }
+
   QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy> thenByText() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'text', Sort.asc);
@@ -928,6 +1020,13 @@ extension PhraseCollectionQueryWhereDistinct
     });
   }
 
+  QueryBuilder<PhraseCollection, PhraseCollection, QDistinct>
+  distinctBySortOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'sortOrder');
+    });
+  }
+
   QueryBuilder<PhraseCollection, PhraseCollection, QDistinct> distinctByText({
     bool caseSensitive = true,
   }) {
@@ -963,6 +1062,12 @@ extension PhraseCollectionQueryProperty
   QueryBuilder<PhraseCollection, bool, QQueryOperations> isFavoriteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isFavorite');
+    });
+  }
+
+  QueryBuilder<PhraseCollection, int, QQueryOperations> sortOrderProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'sortOrder');
     });
   }
 

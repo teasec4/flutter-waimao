@@ -6,6 +6,7 @@ class CategoryCard extends StatelessWidget {
   final String name;
   final bool isFirst;
   final int phraseCount;
+  final bool showDragHandle;
   final VoidCallback onTap;
   final VoidCallback onRename;
   final VoidCallback onDelete;
@@ -17,6 +18,7 @@ class CategoryCard extends StatelessWidget {
     required this.name,
     this.isFirst = false,
     this.phraseCount = 0,
+    this.showDragHandle = false,
     required this.onTap,
     required this.onRename,
     required this.onDelete,
@@ -35,6 +37,15 @@ class CategoryCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
+            if (showDragHandle)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Icon(
+                  Icons.drag_indicator,
+                  size: 22,
+                  color: theme.colorScheme.onSurfaceVariant.withAlpha(128),
+                ),
+              ),
             Icon(
               id == 'favorites' ? Icons.favorite : Icons.folder,
               size: 22,

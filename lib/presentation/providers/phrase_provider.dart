@@ -121,6 +121,32 @@ class PhraseProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> reorderCategories(List<PhraseCategory> categories) async {
+    try {
+      await _manageCategories.reorder(categories);
+      _categories = await _manageCategories.getCategories();
+      notifyListeners();
+    } catch (e) {
+      _lastError = 'Ошибка сортировки категорий: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> reorderPhrases(List<Phrase> phrases) async {
+    try {
+      await _managePhrases.reorderPhrases(phrases);
+      if (isFavoritesCategory) {
+        await _loadAllPhrases();
+        _phrases = _allPhrases.where((p) => p.isFavorite).toList();
+      } else {
+        await _refreshPhrases();
+      }
+    } catch (e) {
+      _lastError = 'Ошибка сортировки фраз: $e';
+      notifyListeners();
+    }
+  }
+
   Future<void> selectCategory(PhraseCategory? category) async {
     _activeCategory = category;
     _searchQuery = '';
@@ -174,7 +200,10 @@ class PhraseProvider extends ChangeNotifier {
 
   Future<void> addCategory(String name) async {
     try {
-      await _manageCategories.addCategory(name);
+      final maxOrder = _categories.isEmpty
+          ? 0
+          : _categories.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b) + 1;
+      await _manageCategories.addCategory(name, sortOrder: maxOrder);
       _categories = await _manageCategories.getCategories();
       notifyListeners();
     } catch (e) {
@@ -262,7 +291,10 @@ class PhraseProvider extends ChangeNotifier {
 
   Future<void> addPhrase(String text) async {
     try {
-      await _managePhrases.addPhrase(text, categoryId: _activeCategory?.id);
+      final maxOrder = _phrases.isEmpty
+          ? 0
+          : _phrases.map((p) => p.sortOrder).reduce((a, b) => a > b ? a : b) + 1;
+      await _managePhrases.addPhrase(text, categoryId: _activeCategory?.id, sortOrder: maxOrder);
       if (isFavoritesCategory) {
         await _loadAllPhrases();
         _phrases = _allPhrases.where((p) => p.isFavorite).toList();

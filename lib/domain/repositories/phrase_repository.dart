@@ -9,4 +9,5 @@ abstract class PhraseRepository {
   Future<void> deletePhrase(String id);
   Future<void> deletePhrasesByCategory(String categoryId);
   Future<int> countPhrasesByCategory(String categoryId);
+  Future<void> reorderPhrases(List<Phrase> phrases);
 }

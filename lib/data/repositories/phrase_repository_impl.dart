@@ -14,19 +14,25 @@ class PhraseRepositoryImpl implements PhraseRepository {
       return isar.phraseCollections
           .filter()
           .categoryIdIsNull()
+          .sortBySortOrder()
           .findAll()
           .then((list) => list.map((c) => c.toEntity()).toList());
     }
     return isar.phraseCollections
         .filter()
         .categoryIdEqualTo(categoryId)
+        .sortBySortOrder()
         .findAll()
         .then((list) => list.map((c) => c.toEntity()).toList());
   }
 
   @override
   Future<List<Phrase>> getAllPhrases() async {
-    return isar.phraseCollections.where().findAll().then(
+    return isar.phraseCollections
+        .where()
+        .sortBySortOrder()
+        .findAll()
+        .then(
           (list) => list.map((c) => c.toEntity()).toList(),
         );
   }
@@ -95,5 +101,23 @@ class PhraseRepositoryImpl implements PhraseRepository {
         .filter()
         .categoryIdEqualTo(categoryId)
         .count();
+  }
+
+  @override
+  Future<void> reorderPhrases(List<Phrase> phrases) async {
+    await isar.writeTxn(() async {
+      for (var i = 0; i < phrases.length; i++) {
+        final collection = PhraseCollection.fromEntity(
+          Phrase(
+            id: phrases[i].id,
+            text: phrases[i].text,
+            categoryId: phrases[i].categoryId,
+            isFavorite: phrases[i].isFavorite,
+            sortOrder: i,
+          ),
+        );
+        await isar.phraseCollections.put(collection);
+      }
+    });
   }
 }
