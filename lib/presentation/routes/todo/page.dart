@@ -161,7 +161,7 @@ class _TodoPageState extends State<TodoPage> {
                       key: ValueKey(list.id),
                       id: list.id,
                       name: list.name,
-                      showDragHandle: true,
+                      draggableIndex: index,
                       onTap: () => provider.selectList(list),
                       onRename: () => _showRenameDialog(list.id, list.name),
                       onDelete: () => _confirmDeleteList(provider, list),
@@ -229,7 +229,7 @@ class _TodoPageState extends State<TodoPage> {
                   id: item.id,
                   text: item.text,
                   isDone: item.isDone,
-                  showDragHandle: true,
+                  draggableIndex: index,
                   onToggle: () => provider.toggleDone(item.id),
                   onDelete: () => _confirmDeleteItem(provider, item),
                 );

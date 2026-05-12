@@ -311,7 +311,7 @@ class _CopyPageState extends State<CopyPage> {
                                       provider.phraseCounts[
                                               cat.id] ??
                                           0,
-                                  showDragHandle: true,
+                                  draggableIndex: index,
                                   onTap: () => provider
                                       .selectCategory(cat),
                                   onRename: () =>
@@ -535,7 +535,7 @@ class _CopyPageState extends State<CopyPage> {
                                   id: phrase.id,
                                   text: phrase.text,
                                   isFavorite: phrase.isFavorite,
-                                  showDragHandle: true,
+                                  draggableIndex: index,
                                   onCopy: () =>
                                       _copyToClipboard(
                                           phrase.text),

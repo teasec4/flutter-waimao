@@ -5,7 +5,7 @@ class PhraseCard extends StatelessWidget {
   final String id;
   final String text;
   final bool isFavorite;
-  final bool showDragHandle;
+  final int? draggableIndex;
   final VoidCallback onCopy;
   final VoidCallback onToggleFavorite;
   final VoidCallback onEdit;
@@ -16,7 +16,7 @@ class PhraseCard extends StatelessWidget {
     required this.id,
     required this.text,
     this.isFavorite = false,
-    this.showDragHandle = false,
+    this.draggableIndex,
     required this.onCopy,
     required this.onToggleFavorite,
     required this.onEdit,
@@ -27,15 +27,60 @@ class PhraseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return InkWell(
-      onTap: onCopy,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            if (showDragHandle)
-              Padding(
+    final cardBody = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _ActionChip(
+            icon: isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : Colors.grey,
+            onPressed: onToggleFavorite,
+            tooltip: isFavorite ? 'Убрать из избранного' : 'В избранное',
+          ),
+          const SizedBox(width: 4),
+          _ActionChip(
+            icon: Icons.copy,
+            color: theme.colorScheme.primary,
+            onPressed: onCopy,
+            tooltip: 'Копировать',
+          ),
+          const SizedBox(width: 4),
+          _ActionChip(
+            icon: Icons.edit,
+            color: Colors.blue,
+            onPressed: onEdit,
+            tooltip: 'Редактировать',
+          ),
+          const SizedBox(width: 4),
+          _ActionChip(
+            icon: Icons.delete,
+            color: Colors.red,
+            onPressed: onDelete,
+            tooltip: 'Удалить',
+          ),
+        ],
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(
+        children: [
+          // Drag handle — ОТДЕЛЬНО от InkWell
+          if (draggableIndex != null)
+            ReorderableDragStartListener(
+              index: draggableIndex!,
+              child: Padding(
                 padding: const EdgeInsets.only(right: 4),
                 child: Icon(
                   Icons.drag_indicator,
@@ -43,44 +88,15 @@ class PhraseCard extends StatelessWidget {
                   color: theme.colorScheme.onSurfaceVariant.withAlpha(128),
                 ),
               ),
-            Expanded(
-              child: Text(
-                text,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 16),
-              ),
             ),
-            const SizedBox(width: 8),
-            _ActionChip(
-              icon: isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: isFavorite ? Colors.red : Colors.grey,
-              onPressed: onToggleFavorite,
-              tooltip: isFavorite ? 'Убрать из избранного' : 'В избранное',
+          // Тело карточки — InkWell
+          Expanded(
+            child: InkWell(
+              onTap: onCopy,
+              child: cardBody,
             ),
-            const SizedBox(width: 4),
-            _ActionChip(
-              icon: Icons.copy,
-              color: theme.colorScheme.primary,
-              onPressed: onCopy,
-              tooltip: 'Копировать',
-            ),
-            const SizedBox(width: 4),
-            _ActionChip(
-              icon: Icons.edit,
-              color: Colors.blue,
-              onPressed: onEdit,
-              tooltip: 'Редактировать',
-            ),
-            const SizedBox(width: 4),
-            _ActionChip(
-              icon: Icons.delete,
-              color: Colors.red,
-              onPressed: onDelete,
-              tooltip: 'Удалить',
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

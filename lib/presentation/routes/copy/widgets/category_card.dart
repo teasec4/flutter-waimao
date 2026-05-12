@@ -6,7 +6,7 @@ class CategoryCard extends StatelessWidget {
   final String name;
   final bool isFirst;
   final int phraseCount;
-  final bool showDragHandle;
+  final int? draggableIndex;
   final VoidCallback onTap;
   final VoidCallback onRename;
   final VoidCallback onDelete;
@@ -18,7 +18,7 @@ class CategoryCard extends StatelessWidget {
     required this.name,
     this.isFirst = false,
     this.phraseCount = 0,
-    this.showDragHandle = false,
+    this.draggableIndex,
     required this.onTap,
     required this.onRename,
     required this.onDelete,
@@ -29,16 +29,57 @@ class CategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return GestureDetector(
-      onTap: onTap,
-      onSecondaryTap: () => _showContextMenu(context),
-      onLongPress: () => _showContextMenu(context),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          children: [
-            if (showDragHandle)
-              Padding(
+    final cardBody = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          Icon(
+            id == 'favorites' ? Icons.favorite : Icons.folder,
+            size: 22,
+            color: id == 'favorites'
+                ? Colors.red
+                : theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              name,
+              style: const TextStyle(fontSize: 16),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 2,
+            ),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              _formatCount(phraseCount),
+              style: TextStyle(
+                fontSize: 13,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(
+        children: [
+          // Drag handle — ОТДЕЛЬНО от GestureDetector
+          if (draggableIndex != null)
+            ReorderableDragStartListener(
+              index: draggableIndex!,
+              child: Padding(
                 padding: const EdgeInsets.only(right: 4),
                 child: Icon(
                   Icons.drag_indicator,
@@ -46,42 +87,17 @@ class CategoryCard extends StatelessWidget {
                   color: theme.colorScheme.onSurfaceVariant.withAlpha(128),
                 ),
               ),
-            Icon(
-              id == 'favorites' ? Icons.favorite : Icons.folder,
-              size: 22,
-              color: id == 'favorites'
-                  ? Colors.red
-                  : theme.colorScheme.primary,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                name,
-                style: const TextStyle(fontSize: 16),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+          // Тело карточки — GestureDetector
+          Expanded(
+            child: GestureDetector(
+              onTap: onTap,
+              onSecondaryTap: () => _showContextMenu(context),
+              onLongPress: () => _showContextMenu(context),
+              child: cardBody,
             ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 2,
-              ),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                _formatCount(phraseCount),
-                style: TextStyle(
-                  fontSize: 13,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
