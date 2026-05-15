@@ -1,17 +1,27 @@
-import 'package:paste_tool/domain/entities/truck.dart';
-import 'package:paste_tool/domain/repositories/truck_repository.dart';
+import 'package:uuid/uuid.dart';
+
+import '../entities/truck.dart';
+import '../repositories/truck_repository.dart';
+
+const _uuid = Uuid();
 
 class ManageTrucks {
   final TruckRepository repository;
 
   ManageTrucks(this.repository);
 
-  List<Truck> getAll() => repository.getAll();
+  Future<List<Truck>> getAll() => repository.getAll();
 
-  void addTruck(String name, double length, double width, double height, double maxLoad) {
-    repository.addTruck(
+  Future<void> addTruck(
+    String name,
+    double length,
+    double width,
+    double height,
+    double maxLoad,
+  ) {
+    return repository.addTruck(
       Truck(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: _uuid.v4(),
         name: name,
         bodyLength: length,
         bodyWidth: width,
@@ -21,9 +31,9 @@ class ManageTrucks {
     );
   }
 
-  void removeTruck(String id) => repository.removeTruck(id);
+  Future<void> removeTruck(String id) => repository.removeTruck(id);
 
-  void updateTruck(Truck truck) => repository.updateTruck(truck);
+  Future<void> updateTruck(Truck truck) => repository.updateTruck(truck);
 
   /// Стандартные морские контейнеры
   static const Map<String, Map<String, double>> containerPresets = {
@@ -41,11 +51,16 @@ class ManageTrucks {
     },
   };
 
-  void addContainerTemplate(String type) {
+  Future<void> addContainerTemplate(String type) async {
     final preset = containerPresets[type];
     if (preset == null) return;
     final name = type == '20ft' ? '20ft контейнер' : '40ft контейнер';
-    addTruck(name, preset['length']!, preset['width']!, preset['height']!,
-        preset['maxLoad']!);
+    await addTruck(
+      name,
+      preset['length']!,
+      preset['width']!,
+      preset['height']!,
+      preset['maxLoad']!,
+    );
   }
 }

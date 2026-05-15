@@ -1,10 +1,14 @@
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
+
 import 'package:paste_tool/domain/entities/truck.dart';
 import 'package:paste_tool/domain/entities/volume_item.dart';
 import 'package:paste_tool/domain/entities/volume_session.dart';
 import 'package:paste_tool/domain/usecases/manage_sessions.dart';
 import 'package:paste_tool/domain/usecases/manage_trucks.dart';
 import 'package:paste_tool/domain/usecases/manage_volume.dart';
+
+const _uuid = Uuid();
 
 enum VolumeScreen { start, input }
 
@@ -16,6 +20,24 @@ class VolumeProvider extends ChangeNotifier {
   final ManageTrucks _manageTrucks;
   final ManageSessions _manageSessions;
 
+  // --- Кэшированные данные ---
+
+  List<VolumeItem> _items = [];
+  List<VolumeItem> get items => _items;
+
+  double _totalVolume = 0;
+  double get totalVolume => _totalVolume;
+
+  double _totalWeight = 0;
+  double get totalWeight => _totalWeight;
+
+  Future<void> _refreshVolumeData() async {
+    _items = await _manageVolume.getItems();
+    _totalVolume = await _manageVolume.calculateTotalVolume();
+    _totalWeight = await _manageVolume.calculateTotalWeight();
+    notifyListeners();
+  }
+
   // --- Навигация ---
 
   VolumeScreen _screen = VolumeScreen.start;
@@ -24,11 +46,7 @@ class VolumeProvider extends ChangeNotifier {
   InputMode _inputMode = InputMode.newSession;
   InputMode get inputMode => _inputMode;
 
-  // --- Данные текущего расчёта (input screen) ---
-
-  List<VolumeItem> get items => _manageVolume.getItems();
-  double get totalVolume => _manageVolume.totalVolume;
-  double get totalWeight => _manageVolume.totalWeight;
+  // --- Машины ---
 
   List<Truck> _trucks = [];
   List<Truck> get trucks => _trucks;
@@ -38,22 +56,22 @@ class VolumeProvider extends ChangeNotifier {
 
   double get volumeFillRatio {
     if (_activeTruck == null || _activeTruck!.bodyVolume <= 0) return 0;
-    return (totalVolume / _activeTruck!.bodyVolume).clamp(0, 1);
+    return (_totalVolume / _activeTruck!.bodyVolume).clamp(0, 1);
   }
 
   double get weightFillRatio {
     if (_activeTruck == null || _activeTruck!.maxLoad <= 0) return 0;
-    return (totalWeight / _activeTruck!.maxLoad).clamp(0, 1);
+    return (_totalWeight / _activeTruck!.maxLoad).clamp(0, 1);
   }
 
   double get remainingVolume {
     if (_activeTruck == null) return 0;
-    return (_activeTruck!.bodyVolume - totalVolume).clamp(0, double.infinity);
+    return (_activeTruck!.bodyVolume - _totalVolume).clamp(0, double.infinity);
   }
 
   double get remainingWeight {
     if (_activeTruck == null) return 0;
-    return (_activeTruck!.maxLoad - totalWeight).clamp(0, double.infinity);
+    return (_activeTruck!.maxLoad - _totalWeight).clamp(0, double.infinity);
   }
 
   // --- Сохранённые сессии ---
@@ -61,44 +79,41 @@ class VolumeProvider extends ChangeNotifier {
   List<VolumeSession> _sessions = [];
   List<VolumeSession> get sessions => _sessions;
 
-  VolumeProvider(
-    this._manageVolume,
-    this._manageTrucks,
-    this._manageSessions,
-  ) {
+  VolumeProvider(this._manageVolume, this._manageTrucks, this._manageSessions) {
+    // fire-and-forget загрузка начальных данных
     _loadTrucks();
     _loadSessions();
   }
 
-  void _loadTrucks() {
-    _trucks = _manageTrucks.getAll();
+  Future<void> _loadTrucks() async {
+    _trucks = await _manageTrucks.getAll();
   }
 
-  void _loadSessions() {
-    _sessions = _manageSessions.getAll();
+  Future<void> _loadSessions() async {
+    _sessions = await _manageSessions.getAll();
   }
 
   // --- Навигация ---
 
-  void goToStart() {
+  Future<void> goToStart() async {
     _activeTruck = null;
-    _manageVolume.clearAll();
-    _loadTrucks();
-    _loadSessions();
+    await _manageVolume.clearAll();
+    await _loadTrucks();
+    await _loadSessions();
     _screen = VolumeScreen.start;
-    notifyListeners();
+    await _refreshVolumeData();
   }
 
-  void goToInput({Truck? truck}) {
+  Future<void> goToInput({Truck? truck}) async {
     _activeTruck = truck;
     _inputMode = InputMode.newSession;
-    _manageVolume.clearAll();
+    await _manageVolume.clearAll();
     _screen = VolumeScreen.input;
-    notifyListeners();
+    await _refreshVolumeData();
   }
 
   /// Открыть существующую сессию для просмотра / редактирования.
-  void editSession(VolumeSession session) {
+  Future<void> editSession(VolumeSession session) async {
     // Загружаем данные сессии
     _activeTruck = Truck(
       id: session.truckId,
@@ -108,9 +123,9 @@ class VolumeProvider extends ChangeNotifier {
       bodyHeight: session.truckHeight,
       maxLoad: session.truckMaxLoad,
     );
-    _manageVolume.clearAll();
+    await _manageVolume.clearAll();
     for (final item in session.items) {
-      _manageVolume.addItem(
+      await _manageVolume.addItem(
         item.length,
         item.width,
         item.height,
@@ -120,25 +135,30 @@ class VolumeProvider extends ChangeNotifier {
     }
     _inputMode = InputMode.editing;
     _screen = VolumeScreen.input;
-    notifyListeners();
+    await _refreshVolumeData();
   }
 
   // --- Управление товарами ---
 
-  void addItem(
-      double length, double width, double height, double weight, int quantity) {
-    _manageVolume.addItem(length, width, height, weight, quantity);
-    notifyListeners();
+  Future<void> addItem(
+    double length,
+    double width,
+    double height,
+    double weight,
+    int quantity,
+  ) async {
+    await _manageVolume.addItem(length, width, height, weight, quantity);
+    await _refreshVolumeData();
   }
 
-  void removeItem(String id) {
-    _manageVolume.removeItem(id);
-    notifyListeners();
+  Future<void> removeItem(String id) async {
+    await _manageVolume.removeItem(id);
+    await _refreshVolumeData();
   }
 
-  void clearAll() {
-    _manageVolume.clearAll();
-    notifyListeners();
+  Future<void> clearAll() async {
+    await _manageVolume.clearAll();
+    await _refreshVolumeData();
   }
 
   // --- Управление машинами ---
@@ -148,36 +168,41 @@ class VolumeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addTruck(
-      String name, double length, double width, double height, double maxLoad) {
-    _manageTrucks.addTruck(name, length, width, height, maxLoad);
-    _loadTrucks();
+  Future<void> addTruck(
+    String name,
+    double length,
+    double width,
+    double height,
+    double maxLoad,
+  ) async {
+    await _manageTrucks.addTruck(name, length, width, height, maxLoad);
+    await _loadTrucks();
     notifyListeners();
   }
 
-  void addContainerTemplate(String type) {
-    _manageTrucks.addContainerTemplate(type);
-    _loadTrucks();
+  Future<void> addContainerTemplate(String type) async {
+    await _manageTrucks.addContainerTemplate(type);
+    await _loadTrucks();
     notifyListeners();
   }
 
-  void removeTruck(String id) {
+  Future<void> removeTruck(String id) async {
     if (_activeTruck?.id == id) {
       _activeTruck = null;
     }
-    _manageTrucks.removeTruck(id);
-    _loadTrucks();
+    await _manageTrucks.removeTruck(id);
+    await _loadTrucks();
     notifyListeners();
   }
 
   // --- Управление сессиями ---
 
-  void saveSession(String name) {
+  Future<void> saveSession(String name) async {
     if (_activeTruck == null) return;
 
     final now = DateTime.now();
     final session = VolumeSession(
-      id: now.millisecondsSinceEpoch.toString(),
+      id: _uuid.v4(),
       name: name,
       createdAt: now,
       updatedAt: now,
@@ -187,20 +212,20 @@ class VolumeProvider extends ChangeNotifier {
       truckWidth: _activeTruck!.bodyWidth,
       truckHeight: _activeTruck!.bodyHeight,
       truckMaxLoad: _activeTruck!.maxLoad,
-      items: List.from(items),
+      items: List.from(_items),
     );
-    _manageSessions.save(session);
-    _loadSessions();
+    await _manageSessions.save(session);
+    await _loadSessions();
     notifyListeners();
   }
 
-  void deleteSession(String id) {
-    _manageSessions.delete(id);
-    _loadSessions();
+  Future<void> deleteSession(String id) async {
+    await _manageSessions.delete(id);
+    await _loadSessions();
     notifyListeners();
   }
 
-  void updateSession(String sessionId) {
+  Future<void> updateSession(String sessionId) async {
     if (_activeTruck == null) return;
 
     final session = VolumeSession(
@@ -214,10 +239,10 @@ class VolumeProvider extends ChangeNotifier {
       truckWidth: _activeTruck!.bodyWidth,
       truckHeight: _activeTruck!.bodyHeight,
       truckMaxLoad: _activeTruck!.maxLoad,
-      items: List.from(items),
+      items: List.from(_items),
     );
-    _manageSessions.update(session);
-    _loadSessions();
+    await _manageSessions.update(session);
+    await _loadSessions();
     notifyListeners();
   }
 }

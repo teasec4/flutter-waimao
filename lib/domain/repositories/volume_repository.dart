@@ -1,10 +1,10 @@
 import '../entities/volume_item.dart';
 
 abstract class VolumeRepository {
-  List<VolumeItem> getItems();
-  void addItem(VolumeItem item);
-  void removeItem(String id);
-  void clearAll();
-  double get totalVolume;
-  double get totalWeight;
+  Future<List<VolumeItem>> getItems();
+  Future<void> addItem(VolumeItem item);
+  Future<void> removeItem(String id);
+  Future<void> clearAll();
+  Future<double> calculateTotalVolume();
+  Future<double> calculateTotalWeight();
 }

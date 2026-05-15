@@ -10,13 +10,12 @@ class TodoListRepositoryImpl implements TodoListRepository {
 
   @override
   Future<List<TodoList>> getLists() async {
-    final collections = await isar.todoListCollections.where().sortByCreatedAt().findAll();
+    final collections = await isar.todoListCollections
+        .where()
+        .sortByCreatedAt()
+        .findAll();
     return collections
-        .map((c) => TodoList(
-              id: c.uuid,
-              name: c.name,
-              createdAt: c.createdAt,
-            ))
+        .map((c) => TodoList(id: c.uuid, name: c.name, createdAt: c.createdAt))
         .toList();
   }
 
@@ -31,17 +30,24 @@ class TodoListRepositoryImpl implements TodoListRepository {
 
   @override
   Future<void> updateList(TodoList list) async {
-    final existing = await isar.todoListCollections.filter().uuidEqualTo(list.id).findFirst();
+    final existing = await isar.todoListCollections
+        .filter()
+        .uuidEqualTo(list.id)
+        .findFirst();
     if (existing == null) return;
     await isar.writeTxn(() async {
       existing.name = list.name;
+      existing.createdAt = list.createdAt;
       await isar.todoListCollections.put(existing);
     });
   }
 
   @override
   Future<void> deleteList(String id) async {
-    final existing = await isar.todoListCollections.filter().uuidEqualTo(id).findFirst();
+    final existing = await isar.todoListCollections
+        .filter()
+        .uuidEqualTo(id)
+        .findFirst();
     if (existing == null) return;
     await isar.writeTxn(() => isar.todoListCollections.delete(existing.id));
   }

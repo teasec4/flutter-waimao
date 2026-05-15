@@ -8,10 +8,7 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -21,7 +18,9 @@ class SettingsPage extends StatelessWidget {
               builder: (context, settings, _) {
                 return SwitchListTile(
                   title: const Text('Тёмная тема'),
-                  subtitle: const Text('Переключение между светлой и тёмной темой'),
+                  subtitle: const Text(
+                    'Переключение между светлой и тёмной темой',
+                  ),
                   secondary: Icon(
                     settings.isDarkMode ? Icons.dark_mode : Icons.light_mode,
                   ),

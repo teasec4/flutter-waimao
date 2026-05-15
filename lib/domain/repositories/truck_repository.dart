@@ -1,8 +1,8 @@
 import '../entities/truck.dart';
 
 abstract class TruckRepository {
-  List<Truck> getAll();
-  void addTruck(Truck truck);
-  void removeTruck(String id);
-  void updateTruck(Truck truck);
+  Future<List<Truck>> getAll();
+  Future<void> addTruck(Truck truck);
+  Future<void> removeTruck(String id);
+  Future<void> updateTruck(Truck truck);
 }

@@ -10,10 +10,10 @@ class MainShell extends StatelessWidget {
 
   static const _destinations = (
     items: [
-      (icon: Icons.copy, label: 'Копирование'),
-      (icon: Icons.checklist_rounded, label: 'Задачи'),
+      (icon: Icons.work, label: 'Копирование'),
+      (icon: Icons.list, label: 'Задачи'),
       (icon: Icons.book, label: 'Словарь'),
-      (icon: Icons.calculate, label: 'Объём'),
+      (icon: Icons.car_repair, label: 'Объём'),
       (icon: Icons.settings, label: 'Настройки'),
     ],
   );

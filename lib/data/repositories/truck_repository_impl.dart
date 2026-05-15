@@ -9,44 +9,42 @@ class TruckRepositoryImpl implements TruckRepository {
   TruckRepositoryImpl({required this.isar});
 
   @override
-  List<Truck> getAll() {
-    return isar.truckCollections
-        .where()
-        .findAllSync()
-        .map((c) => c.toEntity())
-        .toList();
+  Future<List<Truck>> getAll() async {
+    return isar.truckCollections.where().findAll().then(
+      (list) => list.map((c) => c.toEntity()).toList(),
+    );
   }
 
   @override
-  void addTruck(Truck truck) {
+  Future<void> addTruck(Truck truck) async {
     final collection = TruckCollection.fromEntity(truck);
-    isar.writeTxnSync(() => isar.truckCollections.putSync(collection));
+    await isar.writeTxn(() => isar.truckCollections.put(collection));
   }
 
   @override
-  void removeTruck(String id) {
-    final existing = isar.truckCollections
+  Future<void> removeTruck(String id) async {
+    final existing = await isar.truckCollections
         .filter()
         .uuidEqualTo(id)
-        .findAllSync();
+        .findAll();
     if (existing.isNotEmpty) {
-      isar.writeTxnSync(
-        () => isar.truckCollections
-            .deleteAllSync(existing.map((e) => e.id).toList()),
+      await isar.writeTxn(
+        () =>
+            isar.truckCollections.deleteAll(existing.map((e) => e.id).toList()),
       );
     }
   }
 
   @override
-  void updateTruck(Truck truck) {
-    final existing = isar.truckCollections
+  Future<void> updateTruck(Truck truck) async {
+    final existing = await isar.truckCollections
         .filter()
         .uuidEqualTo(truck.id)
-        .findAllSync();
+        .findAll();
     if (existing.isNotEmpty) {
       final updated = TruckCollection.fromEntity(truck);
       updated.id = existing.first.id;
-      isar.writeTxnSync(() => isar.truckCollections.putSync(updated));
+      await isar.writeTxn(() => isar.truckCollections.put(updated));
     }
   }
 }

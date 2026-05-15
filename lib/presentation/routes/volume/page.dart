@@ -7,6 +7,8 @@ import 'package:paste_tool/presentation/routes/volume/widgets/fill_indicator.dar
 import 'package:paste_tool/presentation/routes/volume/widgets/input_fields.dart';
 import 'package:paste_tool/presentation/routes/volume/widgets/summary_card.dart';
 import 'package:paste_tool/presentation/routes/volume/widgets/item_card.dart';
+import 'package:paste_tool/presentation/routes/volume/widgets/add_truck_dialog.dart';
+import 'package:paste_tool/presentation/routes/volume/widgets/save_session_dialog.dart';
 import 'package:paste_tool/presentation/routes/volume/widgets/start_screen.dart';
 
 class VolumePage extends StatefulWidget {
@@ -17,47 +19,35 @@ class VolumePage extends StatefulWidget {
 }
 
 class _VolumePageState extends State<VolumePage> {
-  final _lengthCtrl = TextEditingController();
-  final _widthCtrl = TextEditingController();
-  final _heightCtrl = TextEditingController();
-  final _weightCtrl = TextEditingController();
+  final _lenCtrl = TextEditingController();
+  final _widCtrl = TextEditingController();
+  final _heiCtrl = TextEditingController();
+  final _weiCtrl = TextEditingController();
   final _qtyCtrl = TextEditingController();
-
-  // Поля для добавления машины
-  final _truckNameCtrl = TextEditingController();
-  final _truckLenCtrl = TextEditingController();
-  final _truckWidCtrl = TextEditingController();
-  final _truckHeiCtrl = TextEditingController();
-  final _truckLoadCtrl = TextEditingController();
 
   @override
   void dispose() {
-    _lengthCtrl.dispose();
-    _widthCtrl.dispose();
-    _heightCtrl.dispose();
-    _weightCtrl.dispose();
+    _lenCtrl.dispose();
+    _widCtrl.dispose();
+    _heiCtrl.dispose();
+    _weiCtrl.dispose();
     _qtyCtrl.dispose();
-    _truckNameCtrl.dispose();
-    _truckLenCtrl.dispose();
-    _truckWidCtrl.dispose();
-    _truckHeiCtrl.dispose();
-    _truckLoadCtrl.dispose();
     super.dispose();
   }
 
   void _addItem() {
-    final l = double.tryParse(_lengthCtrl.text) ?? 0;
-    final w = double.tryParse(_widthCtrl.text) ?? 0;
-    final h = double.tryParse(_heightCtrl.text) ?? 0;
-    final kg = double.tryParse(_weightCtrl.text) ?? 0;
+    final l = double.tryParse(_lenCtrl.text) ?? 0;
+    final w = double.tryParse(_widCtrl.text) ?? 0;
+    final h = double.tryParse(_heiCtrl.text) ?? 0;
+    final kg = double.tryParse(_weiCtrl.text) ?? 0;
     final q = int.tryParse(_qtyCtrl.text) ?? 1;
 
     if (l > 0 && w > 0 && h > 0) {
       context.read<VolumeProvider>().addItem(l, w, h, kg, q);
-      _lengthCtrl.clear();
-      _widthCtrl.clear();
-      _heightCtrl.clear();
-      _weightCtrl.clear();
+      _lenCtrl.clear();
+      _widCtrl.clear();
+      _heiCtrl.clear();
+      _weiCtrl.clear();
       _qtyCtrl.clear();
     }
   }
@@ -85,134 +75,11 @@ class _VolumePageState extends State<VolumePage> {
   }
 
   void _showAddTruckDialog() {
-    _truckNameCtrl.clear();
-    _truckLenCtrl.clear();
-    _truckWidCtrl.clear();
-    _truckHeiCtrl.clear();
-    _truckLoadCtrl.clear();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Новая машина'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _truckNameCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Название',
-                  hintText: 'ГАЗель Next',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _truckLenCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Длина, см',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _truckWidCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Ширина, см',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _truckHeiCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Высота, см',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _truckLoadCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Грузоподъёмность, кг',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final name = _truckNameCtrl.text.trim();
-              final l = double.tryParse(_truckLenCtrl.text) ?? 0;
-              final w = double.tryParse(_truckWidCtrl.text) ?? 0;
-              final h = double.tryParse(_truckHeiCtrl.text) ?? 0;
-              final load = double.tryParse(_truckLoadCtrl.text) ?? 0;
-              if (name.isNotEmpty && l > 0 && w > 0 && h > 0 && load > 0) {
-                context.read<VolumeProvider>().addTruck(name, l, w, h, load);
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Добавить'),
-          ),
-        ],
-      ),
-    );
+    showDialog(context: context, builder: (_) => const AddTruckDialog());
   }
 
   void _showSaveDialog() {
-    final nameCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Сохранить расчёт'),
-        content: TextField(
-          controller: nameCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Название',
-            hintText: 'Загрузка №1',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final name = nameCtrl.text.trim();
-              if (name.isNotEmpty) {
-                context.read<VolumeProvider>().saveSession(name);
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Сохранить'),
-          ),
-        ],
-      ),
-    );
+    showDialog(context: context, builder: (_) => const SaveSessionDialog());
   }
 
   @override
@@ -244,7 +111,6 @@ class _VolumePageState extends State<VolumePage> {
 
     return Column(
       children: [
-        // Верхняя панель с кнопкой «Назад» и сохранением
         _buildTopBar(provider),
         TruckSelector(
           trucks: provider.trucks,
@@ -268,45 +134,49 @@ class _VolumePageState extends State<VolumePage> {
             onRemove: () => provider.removeTruck(truck.id),
           ),
         const Divider(height: 1),
-        if (!isWide) ...[
-          InputFields(
-            lengthCtrl: _lengthCtrl,
-            widthCtrl: _widthCtrl,
-            heightCtrl: _heightCtrl,
-            weightCtrl: _weightCtrl,
-            qtyCtrl: _qtyCtrl,
-            onAdd: _addItem,
-          ),
-          SummaryCard(
-            totalVolume: provider.totalVolume,
-            totalWeight: provider.totalWeight,
-          ),
-        ],
-        Expanded(child: _buildItemList(isWide, provider)),
-        if (isWide) ...[
-          const Divider(height: 1),
-          Row(
+        if (!isWide)
+          Column(
             children: [
-              Expanded(
-                child: InputFields(
-                  lengthCtrl: _lengthCtrl,
-                  widthCtrl: _widthCtrl,
-                  heightCtrl: _heightCtrl,
-                  weightCtrl: _weightCtrl,
-                  qtyCtrl: _qtyCtrl,
-                  onAdd: _addItem,
-                ),
+              InputFields(
+                lengthCtrl: _lenCtrl,
+                widthCtrl: _widCtrl,
+                heightCtrl: _heiCtrl,
+                weightCtrl: _weiCtrl,
+                qtyCtrl: _qtyCtrl,
+                onAdd: _addItem,
               ),
-              const VerticalDivider(width: 1),
-              Expanded(
-                child: SummaryCard(
-                  totalVolume: provider.totalVolume,
-                  totalWeight: provider.totalWeight,
-                ),
+              SummaryCard(
+                totalVolume: provider.totalVolume,
+                totalWeight: provider.totalWeight,
               ),
             ],
           ),
-        ],
+        Expanded(child: _buildItemList(isWide, provider)),
+        if (isWide)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: InputFields(
+                    lengthCtrl: _lenCtrl,
+                    widthCtrl: _widCtrl,
+                    heightCtrl: _heiCtrl,
+                    weightCtrl: _weiCtrl,
+                    qtyCtrl: _qtyCtrl,
+                    onAdd: _addItem,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SummaryCard(
+                    totalVolume: provider.totalVolume,
+                    totalWeight: provider.totalWeight,
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -343,8 +213,10 @@ class _VolumePageState extends State<VolumePage> {
     final items = provider.items;
     if (items.isEmpty) {
       return const Center(
-        child: Text('Добавьте товары',
-            style: TextStyle(color: Colors.grey, fontSize: 16)),
+        child: Text(
+          'Добавьте товары',
+          style: TextStyle(color: Colors.grey, fontSize: 16),
+        ),
       );
     }
     return Stack(

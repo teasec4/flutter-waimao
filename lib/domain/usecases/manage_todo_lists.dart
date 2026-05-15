@@ -21,9 +21,14 @@ class ManageTodoLists {
     return repository.addList(list);
   }
 
-  Future<void> renameList(String id, String name) =>
-      repository.updateList(TodoList(id: id, name: name, createdAt: DateTime.now()));
+  Future<void> renameList(String id, String name) async {
+    // Загружаем существующий список, чтобы сохранить оригинальную дату создания
+    final lists = await repository.getLists();
+    final existing = lists.firstWhere((l) => l.id == id);
+    return repository.updateList(
+      TodoList(id: id, name: name, createdAt: existing.createdAt),
+    );
+  }
 
   Future<void> deleteList(String id) => repository.deleteList(id);
-
 }

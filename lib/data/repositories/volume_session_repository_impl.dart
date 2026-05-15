@@ -9,30 +9,29 @@ class VolumeSessionRepositoryImpl implements VolumeSessionRepository {
   VolumeSessionRepositoryImpl({required this.isar});
 
   @override
-  List<VolumeSession> getAll() {
+  Future<List<VolumeSession>> getAll() async {
     return isar.volumeSessionCollections
         .where()
         .sortByCreatedAtDesc()
-        .findAllSync()
-        .map((c) => c.toEntity())
-        .toList();
+        .findAll()
+        .then((list) => list.map((c) => c.toEntity()).toList());
   }
 
   @override
-  void save(VolumeSession session) {
+  Future<void> save(VolumeSession session) async {
     final collection = VolumeSessionCollection.fromEntity(session);
-    isar.writeTxnSync(() => isar.volumeSessionCollections.putSync(collection));
+    await isar.writeTxn(() => isar.volumeSessionCollections.put(collection));
   }
 
   @override
-  void delete(String id) {
-    final existing = isar.volumeSessionCollections
+  Future<void> delete(String id) async {
+    final existing = await isar.volumeSessionCollections
         .filter()
         .uuidEqualTo(id)
-        .findAllSync();
+        .findAll();
     if (existing.isNotEmpty) {
-      isar.writeTxnSync(
-        () => isar.volumeSessionCollections.deleteAllSync(
+      await isar.writeTxn(
+        () => isar.volumeSessionCollections.deleteAll(
           existing.map((e) => e.id).toList(),
         ),
       );
@@ -40,16 +39,15 @@ class VolumeSessionRepositoryImpl implements VolumeSessionRepository {
   }
 
   @override
-  void update(VolumeSession session) {
+  Future<void> update(VolumeSession session) async {
     final collection = VolumeSessionCollection.fromEntity(session);
-    // Ищем существующую запись по uuid и обновляем
-    final existing = isar.volumeSessionCollections
+    final existing = await isar.volumeSessionCollections
         .filter()
         .uuidEqualTo(session.id)
-        .findFirstSync();
+        .findFirst();
     if (existing != null) {
       collection.id = existing.id;
-      isar.writeTxnSync(() => isar.volumeSessionCollections.putSync(collection));
+      await isar.writeTxn(() => isar.volumeSessionCollections.put(collection));
     }
   }
 }

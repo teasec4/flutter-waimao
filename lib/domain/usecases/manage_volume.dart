@@ -1,23 +1,27 @@
-import 'package:paste_tool/domain/entities/volume_item.dart';
-import 'package:paste_tool/domain/repositories/volume_repository.dart';
+import 'package:uuid/uuid.dart';
+
+import '../entities/volume_item.dart';
+import '../repositories/volume_repository.dart';
+
+const _uuid = Uuid();
 
 class ManageVolume {
   final VolumeRepository repository;
 
   ManageVolume(this.repository);
 
-  List<VolumeItem> getItems() => repository.getItems();
+  Future<List<VolumeItem>> getItems() => repository.getItems();
 
-  void addItem(
+  Future<void> addItem(
     double length,
     double width,
     double height,
     double weight,
     int quantity,
   ) {
-    repository.addItem(
+    return repository.addItem(
       VolumeItem(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: _uuid.v4(),
         length: length,
         width: width,
         height: height,
@@ -27,11 +31,11 @@ class ManageVolume {
     );
   }
 
-  void removeItem(String id) => repository.removeItem(id);
+  Future<void> removeItem(String id) => repository.removeItem(id);
 
-  void clearAll() => repository.clearAll();
+  Future<void> clearAll() => repository.clearAll();
 
-  double get totalVolume => repository.totalVolume;
+  Future<double> calculateTotalVolume() => repository.calculateTotalVolume();
 
-  double get totalWeight => repository.totalWeight;
+  Future<double> calculateTotalWeight() => repository.calculateTotalWeight();
 }

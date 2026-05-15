@@ -6,17 +6,17 @@ class ManageSessions {
   final VolumeSessionRepository _repository;
 
   ManageSessions({required VolumeSessionRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   /// Все сессии.
-  List<VolumeSession> getAll() => _repository.getAll();
+  Future<List<VolumeSession>> getAll() => _repository.getAll();
 
   /// Сохранить новую сессию.
-  void save(VolumeSession session) => _repository.save(session);
+  Future<void> save(VolumeSession session) => _repository.save(session);
 
   /// Удалить сессию.
-  void delete(String id) => _repository.delete(id);
+  Future<void> delete(String id) => _repository.delete(id);
 
   /// Обновить существующую сессию.
-  void update(VolumeSession session) => _repository.update(session);
+  Future<void> update(VolumeSession session) => _repository.update(session);
 }

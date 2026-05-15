@@ -9,29 +9,27 @@ class VolumeRepositoryImpl implements VolumeRepository {
   VolumeRepositoryImpl({required this.isar});
 
   @override
-  List<VolumeItem> getItems() {
-    return isar.volumeItemCollections
-        .where()
-        .findAllSync()
-        .map((c) => c.toEntity())
-        .toList();
+  Future<List<VolumeItem>> getItems() async {
+    return isar.volumeItemCollections.where().findAll().then(
+      (list) => list.map((c) => c.toEntity()).toList(),
+    );
   }
 
   @override
-  void addItem(VolumeItem item) {
+  Future<void> addItem(VolumeItem item) async {
     final collection = VolumeItemCollection.fromEntity(item);
-    isar.writeTxnSync(() => isar.volumeItemCollections.putSync(collection));
+    await isar.writeTxn(() => isar.volumeItemCollections.put(collection));
   }
 
   @override
-  void removeItem(String id) {
-    final existing = isar.volumeItemCollections
+  Future<void> removeItem(String id) async {
+    final existing = await isar.volumeItemCollections
         .filter()
         .uuidEqualTo(id)
-        .findAllSync();
+        .findAll();
     if (existing.isNotEmpty) {
-      isar.writeTxnSync(
-        () => isar.volumeItemCollections.deleteAllSync(
+      await isar.writeTxn(
+        () => isar.volumeItemCollections.deleteAll(
           existing.map((e) => e.id).toList(),
         ),
       );
@@ -39,19 +37,19 @@ class VolumeRepositoryImpl implements VolumeRepository {
   }
 
   @override
-  void clearAll() {
-    isar.writeTxnSync(() => isar.volumeItemCollections.clearSync());
+  Future<void> clearAll() async {
+    await isar.writeTxn(() => isar.volumeItemCollections.clear());
   }
 
   @override
-  double get totalVolume {
-    final items = getItems();
+  Future<double> calculateTotalVolume() async {
+    final items = await getItems();
     return items.fold<double>(0, (sum, item) => sum + item.totalVolume);
   }
 
   @override
-  double get totalWeight {
-    final items = getItems();
+  Future<double> calculateTotalWeight() async {
+    final items = await getItems();
     return items.fold<double>(0, (sum, item) => sum + item.totalWeight);
   }
 }
