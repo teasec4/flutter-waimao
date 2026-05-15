@@ -9,7 +9,9 @@ class TodoProvider extends ChangeNotifier {
   final ManageTodoLists _manageLists;
   final ManageTodoItems _manageItems;
 
-  TodoProvider(this._manageLists, this._manageItems);
+  TodoProvider(this._manageLists, this._manageItems) {
+    loadLists();
+  }
 
   List<TodoList> _lists = [];
   List<TodoItem> _items = [];
@@ -80,7 +82,9 @@ class TodoProvider extends ChangeNotifier {
   Future<void> addItem(String text) async {
     if (_activeList == null) return;
     try {
-      final maxOrder = _items.isEmpty ? 0 : _items.map((i) => i.sortOrder).reduce((a, b) => a > b ? a : b) + 1;
+      final maxOrder = _items.isEmpty
+          ? 0
+          : _items.map((i) => i.sortOrder).reduce((a, b) => a > b ? a : b) + 1;
       await _manageItems.addItem(text, _activeList!.id, sortOrder: maxOrder);
       await _loadItems();
     } catch (e) {

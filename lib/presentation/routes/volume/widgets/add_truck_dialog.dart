@@ -45,64 +45,47 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
     return AlertDialog(
       title: const Text('Новая машина'),
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nameCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Название',
-                hintText: 'ГАЗель Next',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxWidth < 420;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _lenCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Длина, см',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
+                TextField(
+                  controller: _nameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Название',
+                    hintText: 'ГАЗель Next',
+                    border: OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _widCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Ширина, см',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
+                const SizedBox(height: 12),
+                if (isCompact)
+                  Column(
+                    children: [
+                      _numberField(_lenCtrl, 'Длина, см'),
+                      const SizedBox(height: 12),
+                      _numberField(_widCtrl, 'Ширина, см'),
+                      const SizedBox(height: 12),
+                      _numberField(_heiCtrl, 'Высота, см'),
+                    ],
+                  )
+                else
+                  Row(
+                    children: [
+                      Expanded(child: _numberField(_lenCtrl, 'Длина, см')),
+                      const SizedBox(width: 8),
+                      Expanded(child: _numberField(_widCtrl, 'Ширина, см')),
+                      const SizedBox(width: 8),
+                      Expanded(child: _numberField(_heiCtrl, 'Высота, см')),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _heiCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Высота, см',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
+                const SizedBox(height: 12),
+                _numberField(_loadCtrl, 'Грузоподъёмность, кг'),
               ],
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _loadCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Грузоподъёмность, кг',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ],
+            );
+          },
         ),
       ),
       actions: [
@@ -112,6 +95,17 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
         ),
         FilledButton(onPressed: _submit, child: const Text('Добавить')),
       ],
+    );
+  }
+
+  Widget _numberField(TextEditingController controller, String label) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
     );
   }
 }

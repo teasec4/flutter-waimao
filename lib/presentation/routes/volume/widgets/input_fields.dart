@@ -23,79 +23,88 @@ class InputFields extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 480;
+
+          if (isCompact) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: _numberField(lengthCtrl, 'Длина, см')),
+                    const SizedBox(width: 8),
+                    Expanded(child: _numberField(widthCtrl, 'Ширина, см')),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(child: _numberField(heightCtrl, 'Высота, см')),
+                    const SizedBox(width: 8),
+                    Expanded(child: _numberField(weightCtrl, 'Вес, кг')),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(child: _numberField(qtyCtrl, 'Кол-во')),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: onAdd,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Добавить'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          }
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: TextField(
-                  controller: lengthCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Длина, см',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
+              Row(
+                children: [
+                  Expanded(child: _numberField(lengthCtrl, 'Длина, см')),
+                  const SizedBox(width: 8),
+                  Expanded(child: _numberField(widthCtrl, 'Ширина, см')),
+                  const SizedBox(width: 8),
+                  Expanded(child: _numberField(heightCtrl, 'Высота, см')),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: widthCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Ширина, см',
-                    border: OutlineInputBorder(),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(child: _numberField(weightCtrl, 'Вес, кг')),
+                  const SizedBox(width: 8),
+                  Expanded(child: _numberField(qtyCtrl, 'Кол-во')),
+                  const SizedBox(width: 8),
+                  FilledButton.icon(
+                    onPressed: onAdd,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Добавить'),
                   ),
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: heightCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Высота, см',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
+                ],
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: weightCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Вес, кг',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: qtyCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Кол-во',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: onAdd,
-                icon: const Icon(Icons.add),
-                label: const Text('Добавить'),
-              ),
-            ],
-          ),
-        ],
+          );
+        },
       ),
+    );
+  }
+
+  Widget _numberField(TextEditingController controller, String label) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
     );
   }
 }

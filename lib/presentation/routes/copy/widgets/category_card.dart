@@ -34,9 +34,7 @@ class CategoryCard extends StatelessWidget {
           Icon(
             id == 'favorites' ? Icons.favorite : Icons.folder,
             size: 22,
-            color: id == 'favorites'
-                ? Colors.red
-                : theme.colorScheme.primary,
+            color: id == 'favorites' ? Colors.red : theme.colorScheme.primary,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -49,10 +47,7 @@ class CategoryCard extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 2,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
@@ -65,17 +60,32 @@ class CategoryCard extends StatelessWidget {
               ),
             ),
           ),
+          if (canDelete)
+            PopupMenuButton<String>(
+              tooltip: 'Действия',
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                if (value == 'rename') onRename();
+                if (value == 'delete') onDelete();
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(value: 'rename', child: Text('Переименовать')),
+                PopupMenuItem(value: 'delete', child: Text('Удалить')),
+              ],
+            ),
         ],
       ),
     );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: GestureDetector(
-        onTap: onTap,
-        onSecondaryTap: () => _showContextMenu(context),
-        onLongPress: () => _showContextMenu(context),
-        child: cardBody,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onTap,
+          child: cardBody,
+        ),
       ),
     );
   }
@@ -85,39 +95,5 @@ class CategoryCard extends StatelessWidget {
       return '${(count / 1000).toStringAsFixed(1)}k';
     }
     return count.toString();
-  }
-
-  void _showContextMenu(BuildContext context) {
-    showMenu(
-      context: context,
-      position: RelativeRect.fromLTRB(100, 100, 200, 200),
-      items: [
-        PopupMenuItem(
-          value: 'rename',
-          child: ListTile(
-            leading: const Icon(Icons.edit, size: 22),
-            title: const Text('Переименовать', style: TextStyle(fontSize: 16)),
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-          ),
-        ),
-        if (canDelete)
-          PopupMenuItem(
-            value: 'delete',
-            child: ListTile(
-              leading: const Icon(Icons.delete, size: 22, color: Colors.red),
-              title: const Text('Удалить',
-                  style: TextStyle(fontSize: 16, color: Colors.red)),
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
-            ),
-          ),
-      ],
-    ).then((value) {
-      if (value == 'rename') onRename();
-      if (value == 'delete') onDelete();
-    });
   }
 }

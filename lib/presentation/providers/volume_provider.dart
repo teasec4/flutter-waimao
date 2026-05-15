@@ -80,9 +80,12 @@ class VolumeProvider extends ChangeNotifier {
   List<VolumeSession> get sessions => _sessions;
 
   VolumeProvider(this._manageVolume, this._manageTrucks, this._manageSessions) {
-    // fire-and-forget загрузка начальных данных
-    _loadTrucks();
-    _loadSessions();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    await Future.wait([_loadTrucks(), _loadSessions()]);
+    notifyListeners();
   }
 
   Future<void> _loadTrucks() async {

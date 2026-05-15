@@ -10,31 +10,48 @@ class MainShell extends StatelessWidget {
 
   static const _destinations = (
     items: [
-      (icon: Icons.work, label: 'Копирование'),
-      (icon: Icons.list, label: 'Задачи'),
-      (icon: Icons.book, label: 'Словарь'),
-      (icon: Icons.car_repair, label: 'Объём'),
-      (icon: Icons.settings, label: 'Настройки'),
+      (icon: Icons.work, label: 'Копирование', mobileLabel: 'Фразы'),
+      (icon: Icons.list, label: 'Задачи', mobileLabel: 'Задачи'),
+      (icon: Icons.book, label: 'Словарь', mobileLabel: 'Словарь'),
+      (icon: Icons.car_repair, label: 'Объём', mobileLabel: 'Объём'),
+      (icon: Icons.settings, label: 'Настройки', mobileLabel: 'Настр.'),
     ],
   );
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final isCompact = width <= 800;
+    final width = MediaQuery.sizeOf(context).width;
+    final useBottomNavigation = width < 700;
+
+    if (useBottomNavigation) {
+      return Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: ResponsiveContentWrapper(child: navigationShell),
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: navigationShell.currentIndex,
+          onDestinationSelected: _goBranch,
+          destinations: MainShell._destinations.items
+              .map(
+                (d) => NavigationDestination(
+                  icon: Icon(d.icon),
+                  selectedIcon: Icon(d.icon),
+                  label: d.mobileLabel,
+                ),
+              )
+              .toList(),
+        ),
+      );
+    }
 
     return Scaffold(
       body: Row(
         children: [
           NavigationRail(
             selectedIndex: navigationShell.currentIndex,
-            onDestinationSelected: (index) {
-              navigationShell.goBranch(
-                index,
-                initialLocation: index == navigationShell.currentIndex,
-              );
-            },
-            labelType: isCompact
+            onDestinationSelected: _goBranch,
+            labelType: width <= 920
                 ? NavigationRailLabelType.none
                 : NavigationRailLabelType.all,
             destinations: MainShell._destinations.items
@@ -48,11 +65,16 @@ class MainShell extends StatelessWidget {
                 .toList(),
           ),
           const VerticalDivider(width: 1),
-          Expanded(
-            child: ResponsiveContentWrapper(child: navigationShell),
-          ),
+          Expanded(child: ResponsiveContentWrapper(child: navigationShell)),
         ],
       ),
+    );
+  }
+
+  void _goBranch(int index) {
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
     );
   }
 }

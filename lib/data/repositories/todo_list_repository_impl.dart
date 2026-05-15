@@ -1,4 +1,5 @@
 import 'package:isar_community/isar.dart';
+import 'package:paste_tool/data/collections/todo_item_collection.dart';
 import 'package:paste_tool/data/collections/todo_list_collection.dart';
 import 'package:paste_tool/domain/entities/todo_list.dart';
 import 'package:paste_tool/domain/repositories/todo_list_repository.dart';
@@ -49,6 +50,18 @@ class TodoListRepositoryImpl implements TodoListRepository {
         .uuidEqualTo(id)
         .findFirst();
     if (existing == null) return;
-    await isar.writeTxn(() => isar.todoListCollections.delete(existing.id));
+    final items = await isar.todoItemCollections
+        .filter()
+        .listIdEqualTo(id)
+        .findAll();
+
+    await isar.writeTxn(() async {
+      await isar.todoListCollections.delete(existing.id);
+      if (items.isNotEmpty) {
+        await isar.todoItemCollections.deleteAll(
+          items.map((item) => item.id).toList(),
+        );
+      }
+    });
   }
 }
