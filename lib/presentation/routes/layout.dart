@@ -18,56 +18,69 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
+    final theme = Theme.of(context);
 
     return Scaffold(
-      body: SafeArea(child: ResponsiveContentWrapper(child: navigationShell)),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(right: 4),
-        child: Row(
-          children: [
-            Expanded(
-              child: NavigationBar(
-                selectedIndex: navigationShell.currentIndex,
-                onDestinationSelected: _goBranch,
-                height: 56,
-                destinations: MainShell._destinations
-                    .map(
-                      (d) => NavigationDestination(
-                        icon: Icon(d.icon),
-                        selectedIcon: Icon(d.icon),
-                        label: d.label,
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-            IconButton(
-              icon: Icon(
-                settings.alwaysOnTop ? Icons.push_pin : Icons.push_pin_outlined,
-                size: 20,
-              ),
-              tooltip: settings.alwaysOnTop
-                  ? 'Не поверх окон'
-                  : 'Поверх всех окон',
-              onPressed: () => settings.toggleAlwaysOnTop(),
-            ),
-            IconButton(
-              icon: Icon(
-                settings.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-              ),
-              tooltip: settings.isDarkMode ? 'Светлая тема' : 'Тёмная тема',
-              onPressed: () => settings.toggleTheme(),
-            ),
-          ],
+      appBar: AppBar(
+        toolbarHeight: 40,
+        titleSpacing: 12,
+        elevation: 1,
+        shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.3),
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          'Paste Tool',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.primary,
+          ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              settings.alwaysOnTop ? Icons.push_pin : Icons.push_pin_outlined,
+              size: 18,
+            ),
+            tooltip: settings.alwaysOnTop
+                ? 'Не поверх окон'
+                : 'Поверх всех окон',
+            onPressed: () => settings.toggleAlwaysOnTop(),
+          ),
+          IconButton(
+            icon: Icon(
+              settings.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              size: 18,
+            ),
+            tooltip: settings.isDarkMode ? 'Светлая тема' : 'Тёмная тема',
+            onPressed: () => settings.toggleTheme(),
+          ),
+          const SizedBox(width: 4),
+        ],
       ),
-    );
-  }
-
-  void _goBranch(int index) {
-    navigationShell.goBranch(
-      index,
-      initialLocation: index == navigationShell.currentIndex,
+      body: SafeArea(
+        top: false,
+        child: ResponsiveContentWrapper(child: navigationShell),
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: navigationShell.currentIndex,
+        onDestinationSelected: (index) {
+          navigationShell.goBranch(
+            index,
+            initialLocation: index == navigationShell.currentIndex,
+          );
+          settings.saveLastTab(index);
+        },
+        height: 56,
+        destinations: MainShell._destinations
+            .map(
+              (d) => NavigationDestination(
+                icon: Icon(d.icon),
+                selectedIcon: Icon(d.icon),
+                label: d.label,
+              ),
+            )
+            .toList(),
+      ),
     );
   }
 }

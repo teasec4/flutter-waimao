@@ -27,10 +27,6 @@ class ManagePhrases {
     await repository.addPhrase(phrase);
   }
 
-  Future<void> addPhraseRaw(Phrase phrase) async {
-    await repository.addPhrase(phrase);
-  }
-
   Future<void> editPhrase(String id, String newText) async {
     await repository.editPhrase(id, newText);
   }

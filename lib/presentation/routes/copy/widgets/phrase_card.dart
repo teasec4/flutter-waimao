@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class PhraseCard extends StatelessWidget {
   final String id;
   final String text;
+  final bool isCopied;
   final VoidCallback onCopy;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -12,6 +13,7 @@ class PhraseCard extends StatelessWidget {
     super.key,
     required this.id,
     required this.text,
+    this.isCopied = false,
     required this.onCopy,
     required this.onEdit,
     required this.onDelete,
@@ -23,44 +25,59 @@ class PhraseCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: InkWell(
-        onTap: onCopy,
-        borderRadius: BorderRadius.circular(6),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  text,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 15),
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+          ),
+        ),
+        child: InkWell(
+          onTap: onCopy,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    text,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: isCopied
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 6),
-              _Btn(
-                icon: Icons.copy,
-                color: theme.colorScheme.primary,
-                onTap: onCopy,
-                tooltip: 'Копировать',
-              ),
-              const SizedBox(width: 2),
-              _Btn(
-                icon: Icons.edit,
-                color: Colors.blue,
-                onTap: onEdit,
-                tooltip: 'Редактировать',
-              ),
-              const SizedBox(width: 2),
-              _Btn(
-                icon: Icons.delete,
-                color: Colors.red,
-                onTap: onDelete,
-                tooltip: 'Удалить',
-              ),
-            ],
+                const SizedBox(width: 6),
+                _ActionBtn(
+                  icon: isCopied ? Icons.check : Icons.copy,
+                  color: isCopied ? Colors.green : theme.colorScheme.primary,
+                  onTap: onCopy,
+                  tooltip: 'Копировать',
+                ),
+                const SizedBox(width: 2),
+                _ActionBtn(
+                  icon: Icons.edit,
+                  color: Colors.blue,
+                  onTap: onEdit,
+                  tooltip: 'Редактировать',
+                ),
+                const SizedBox(width: 2),
+                _ActionBtn(
+                  icon: Icons.delete,
+                  color: theme.colorScheme.error,
+                  onTap: onDelete,
+                  tooltip: 'Удалить',
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -68,13 +85,13 @@ class PhraseCard extends StatelessWidget {
   }
 }
 
-class _Btn extends StatelessWidget {
+class _ActionBtn extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
   final String? tooltip;
 
-  const _Btn({
+  const _ActionBtn({
     required this.icon,
     required this.color,
     required this.onTap,
@@ -84,14 +101,14 @@ class _Btn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 28,
-      height: 28,
+      width: 32,
+      height: 32,
       child: IconButton(
-        icon: Icon(icon, size: 16),
+        icon: Icon(icon, size: 18),
         color: color,
         onPressed: onTap,
         padding: EdgeInsets.zero,
-        splashRadius: 14,
+        splashRadius: 16,
         tooltip: tooltip,
       ),
     );

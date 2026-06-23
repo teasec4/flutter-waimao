@@ -4,8 +4,8 @@ import 'package:paste_tool/presentation/routes/layout.dart';
 import 'package:paste_tool/presentation/routes/copy/page.dart';
 import 'package:paste_tool/presentation/routes/todo/page.dart';
 
-final router = GoRouter(
-  initialLocation: '/copy',
+GoRouter createRouter({String initialLocation = '/copy'}) => GoRouter(
+  initialLocation: initialLocation,
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>

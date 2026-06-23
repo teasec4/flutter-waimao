@@ -26,11 +26,6 @@ class PhraseProvider extends ChangeNotifier {
   Map<String, int> _phraseCounts = {};
   Map<String, int> get phraseCounts => _phraseCounts;
 
-  // Undo для удаления
-  Phrase? _undoPhrase;
-  PhraseCategory? _undoCategory;
-  List<Phrase> _undoPhrasesForCategory = [];
-
   String? _lastError;
   String? get lastError => _lastError;
 
@@ -64,7 +59,9 @@ class PhraseProvider extends ChangeNotifier {
 
   Future<void> _loadCategories() async {
     try {
-      _categories = await _manageCategories.getCategories();
+      var cats = await _manageCategories.getCategories();
+      cats.removeWhere((c) => c.name == 'Избранное');
+      _categories = cats;
       await _loadPhraseCounts();
       if (_categories.isNotEmpty && _activeCategory == null) {
         _activeCategory = _categories.first;
@@ -125,7 +122,9 @@ class PhraseProvider extends ChangeNotifier {
                     .reduce((a, b) => a > b ? a : b) +
                 1;
       await _manageCategories.addCategory(name, sortOrder: maxOrder);
-      _categories = await _manageCategories.getCategories();
+      var cats = await _manageCategories.getCategories();
+      cats.removeWhere((c) => c.name == 'Избранное');
+      _categories = cats;
       // Авто-выбор только что созданной категории
       final created = _categories.last;
       _activeCategory = created;
@@ -141,7 +140,9 @@ class PhraseProvider extends ChangeNotifier {
   Future<void> renameCategory(String id, String newName) async {
     try {
       await _manageCategories.renameCategory(id, newName);
-      _categories = await _manageCategories.getCategories();
+      var cats = await _manageCategories.getCategories();
+      cats.removeWhere((c) => c.name == 'Избранное');
+      _categories = cats;
 
       if (_activeCategory?.id == id) {
         _activeCategory = PhraseCategory(
@@ -159,16 +160,10 @@ class PhraseProvider extends ChangeNotifier {
 
   Future<void> deleteCategory(String id) async {
     try {
-      _undoCategory = _categories.firstWhere(
-        (c) => c.id == id,
-        orElse: () => throw Exception('Категория не найдена'),
-      );
-      _undoPhrasesForCategory = await _managePhrases.loadPhrases(
-        categoryId: id,
-      );
-
       await _manageCategories.removeCategory(id);
-      _categories = await _manageCategories.getCategories();
+      var cats = await _manageCategories.getCategories();
+      cats.removeWhere((c) => c.name == 'Избранное');
+      _categories = cats;
       await _loadPhraseCounts();
 
       if (_activeCategory?.id == id) {
@@ -178,34 +173,7 @@ class PhraseProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      _undoCategory = null;
-      _undoPhrasesForCategory = [];
       _lastError = 'Ошибка удаления категории: $e';
-      notifyListeners();
-    }
-  }
-
-  Future<void> undoDeleteCategory() async {
-    final cat = _undoCategory;
-    final phrases = List<Phrase>.from(_undoPhrasesForCategory);
-    _undoCategory = null;
-    _undoPhrasesForCategory = [];
-    if (cat == null) return;
-
-    try {
-      await _manageCategories.addCategoryRaw(cat);
-      for (final phrase in phrases) {
-        await _managePhrases.addPhraseRaw(phrase);
-      }
-      _categories = await _manageCategories.getCategories();
-      await _loadPhraseCounts();
-
-      if (_activeCategory?.id == cat.id) {
-        await _refreshPhrases();
-      }
-      notifyListeners();
-    } catch (e) {
-      _lastError = 'Ошибка восстановления категории: $e';
       notifyListeners();
     }
   }
@@ -243,32 +211,11 @@ class PhraseProvider extends ChangeNotifier {
 
   Future<void> deletePhrase(String id) async {
     try {
-      _undoPhrase = _phrases.firstWhere(
-        (p) => p.id == id,
-        orElse: () => throw Exception('Фраза не найдена'),
-      );
-
       await _managePhrases.deletePhrase(id);
       await _refreshPhrases();
       await _loadPhraseCounts();
     } catch (e) {
-      _undoPhrase = null;
       _lastError = 'Ошибка удаления фразы: $e';
-      notifyListeners();
-    }
-  }
-
-  Future<void> undoDeletePhrase() async {
-    final backup = _undoPhrase;
-    _undoPhrase = null;
-    if (backup == null) return;
-
-    try {
-      await _managePhrases.addPhraseRaw(backup);
-      await _refreshPhrases();
-      await _loadPhraseCounts();
-    } catch (e) {
-      _lastError = 'Ошибка восстановления фразы: $e';
       notifyListeners();
     }
   }

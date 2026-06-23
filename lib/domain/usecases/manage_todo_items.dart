@@ -23,7 +23,19 @@ class ManageTodoItems {
     return repository.addItem(item);
   }
 
-  Future<void> toggleDone(String id, TodoItem item) {
+  Future<void> editItem(TodoItem item, String newText) {
+    final updated = TodoItem(
+      id: item.id,
+      text: newText,
+      isDone: item.isDone,
+      listId: item.listId,
+      sortOrder: item.sortOrder,
+      createdAt: item.createdAt,
+    );
+    return repository.updateItem(updated);
+  }
+
+  Future<void> toggleDone(TodoItem item) {
     final updated = TodoItem(
       id: item.id,
       text: item.text,
@@ -36,5 +48,4 @@ class ManageTodoItems {
   }
 
   Future<void> deleteItem(String id) => repository.deleteItem(id);
-
 }

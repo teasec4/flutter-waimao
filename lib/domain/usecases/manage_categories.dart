@@ -23,10 +23,6 @@ class ManageCategories {
     await repository.addCategory(category);
   }
 
-  Future<void> addCategoryRaw(PhraseCategory category) {
-    return repository.addCategory(category);
-  }
-
   Future<void> renameCategory(String id, String newName) {
     return repository.renameCategory(id, newName);
   }
@@ -35,5 +31,4 @@ class ManageCategories {
     await repository.removeCategory(id);
     await _phraseRepository.deletePhrasesByCategory(id);
   }
-
 }

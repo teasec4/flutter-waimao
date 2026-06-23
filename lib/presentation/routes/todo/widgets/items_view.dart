@@ -55,6 +55,36 @@ class _ItemsViewState extends State<ItemsView> {
     context.read<TodoProvider>().addItem(text);
   }
 
+  void _showEditItemDialog(TodoItem item) {
+    _textCtrl.text = item.text;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Редактировать задачу'),
+        content: TextField(
+          controller: _textCtrl,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Текст задачи'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final text = _textCtrl.text.trim();
+              if (text.isEmpty) return;
+              Navigator.pop(ctx);
+              context.read<TodoProvider>().editItem(item.id, text);
+            },
+            child: const Text('Сохранить'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _confirmDelete(TodoItem item) {
     showDialog(
       context: context,
@@ -121,6 +151,7 @@ class _ItemsViewState extends State<ItemsView> {
                       text: item.text,
                       isDone: item.isDone,
                       onToggle: () => provider.toggleDone(item.id),
+                      onEdit: () => _showEditItemDialog(item),
                       onDelete: () => _confirmDelete(item),
                     );
                   },

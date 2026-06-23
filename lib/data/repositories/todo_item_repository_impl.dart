@@ -15,33 +15,21 @@ class TodoItemRepositoryImpl implements TodoItemRepository {
         .listIdEqualTo(listId)
         .sortBySortOrder()
         .findAll();
-    return collections
-        .map((c) => TodoItem(
-              id: c.uuid,
-              text: c.text,
-              isDone: c.isDone,
-              listId: c.listId,
-              sortOrder: c.sortOrder,
-              createdAt: c.createdAt,
-            ))
-        .toList();
+    return collections.map((c) => c.toEntity()).toList();
   }
 
   @override
   Future<void> addItem(TodoItem item) async {
-    final collection = TodoItemCollection()
-      ..uuid = item.id
-      ..text = item.text
-      ..isDone = item.isDone
-      ..listId = item.listId
-      ..sortOrder = item.sortOrder
-      ..createdAt = item.createdAt;
+    final collection = TodoItemCollection.fromEntity(item);
     await isar.writeTxn(() => isar.todoItemCollections.put(collection));
   }
 
   @override
   Future<void> updateItem(TodoItem item) async {
-    final existing = await isar.todoItemCollections.filter().uuidEqualTo(item.id).findFirst();
+    final existing = await isar.todoItemCollections
+        .filter()
+        .uuidEqualTo(item.id)
+        .findFirst();
     if (existing == null) return;
     await isar.writeTxn(() async {
       existing.text = item.text;
@@ -53,7 +41,10 @@ class TodoItemRepositoryImpl implements TodoItemRepository {
 
   @override
   Future<void> deleteItem(String id) async {
-    final existing = await isar.todoItemCollections.filter().uuidEqualTo(id).findFirst();
+    final existing = await isar.todoItemCollections
+        .filter()
+        .uuidEqualTo(id)
+        .findFirst();
     if (existing == null) return;
     await isar.writeTxn(() => isar.todoItemCollections.delete(existing.id));
   }

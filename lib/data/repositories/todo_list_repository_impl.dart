@@ -15,17 +15,12 @@ class TodoListRepositoryImpl implements TodoListRepository {
         .where()
         .sortByCreatedAt()
         .findAll();
-    return collections
-        .map((c) => TodoList(id: c.uuid, name: c.name, createdAt: c.createdAt))
-        .toList();
+    return collections.map((c) => c.toEntity()).toList();
   }
 
   @override
   Future<void> addList(TodoList list) async {
-    final collection = TodoListCollection()
-      ..uuid = list.id
-      ..name = list.name
-      ..createdAt = list.createdAt;
+    final collection = TodoListCollection.fromEntity(list);
     await isar.writeTxn(() => isar.todoListCollections.put(collection));
   }
 

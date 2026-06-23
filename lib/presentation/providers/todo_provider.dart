@@ -25,6 +25,10 @@ class TodoProvider extends ChangeNotifier {
   bool get loading => _loading;
   String? get lastError => _lastError;
 
+  void clearError() {
+    _lastError = null;
+  }
+
   Future<void> loadLists() async {
     _loading = true;
     notifyListeners();
@@ -93,10 +97,21 @@ class TodoProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> editItem(String itemId, String newText) async {
+    final item = _items.firstWhere((i) => i.id == itemId);
+    try {
+      await _manageItems.editItem(item, newText);
+      await _loadItems();
+    } catch (e) {
+      _lastError = 'Ошибка редактирования задачи: $e';
+      notifyListeners();
+    }
+  }
+
   Future<void> toggleDone(String itemId) async {
     final item = _items.firstWhere((i) => i.id == itemId);
     try {
-      await _manageItems.toggleDone(itemId, item);
+      await _manageItems.toggleDone(item);
       await _loadItems();
     } catch (e) {
       _lastError = 'Ошибка обновления задачи: $e';
