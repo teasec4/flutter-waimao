@@ -22,18 +22,13 @@ const PhraseCollectionSchema = CollectionSchema(
       name: r'categoryId',
       type: IsarType.string,
     ),
-    r'isFavorite': PropertySchema(
-      id: 1,
-      name: r'isFavorite',
-      type: IsarType.bool,
-    ),
     r'sortOrder': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'sortOrder',
       type: IsarType.long,
     ),
-    r'text': PropertySchema(id: 3, name: r'text', type: IsarType.string),
-    r'uuid': PropertySchema(id: 4, name: r'uuid', type: IsarType.string),
+    r'text': PropertySchema(id: 2, name: r'text', type: IsarType.string),
+    r'uuid': PropertySchema(id: 3, name: r'uuid', type: IsarType.string),
   },
 
   estimateSize: _phraseCollectionEstimateSize,
@@ -89,10 +84,9 @@ void _phraseCollectionSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.categoryId);
-  writer.writeBool(offsets[1], object.isFavorite);
-  writer.writeLong(offsets[2], object.sortOrder);
-  writer.writeString(offsets[3], object.text);
-  writer.writeString(offsets[4], object.uuid);
+  writer.writeLong(offsets[1], object.sortOrder);
+  writer.writeString(offsets[2], object.text);
+  writer.writeString(offsets[3], object.uuid);
 }
 
 PhraseCollection _phraseCollectionDeserialize(
@@ -104,10 +98,9 @@ PhraseCollection _phraseCollectionDeserialize(
   final object = PhraseCollection();
   object.categoryId = reader.readStringOrNull(offsets[0]);
   object.id = id;
-  object.isFavorite = reader.readBool(offsets[1]);
-  object.sortOrder = reader.readLong(offsets[2]);
-  object.text = reader.readString(offsets[3]);
-  object.uuid = reader.readString(offsets[4]);
+  object.sortOrder = reader.readLong(offsets[1]);
+  object.text = reader.readString(offsets[2]);
+  object.uuid = reader.readString(offsets[3]);
   return object;
 }
 
@@ -121,12 +114,10 @@ P _phraseCollectionDeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readBool(offset)) as P;
-    case 2:
       return (reader.readLong(offset)) as P;
-    case 3:
+    case 2:
       return (reader.readString(offset)) as P;
-    case 4:
+    case 3:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -497,15 +488,6 @@ extension PhraseCollectionQueryFilter
   }
 
   QueryBuilder<PhraseCollection, PhraseCollection, QAfterFilterCondition>
-  isFavoriteEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'isFavorite', value: value),
-      );
-    });
-  }
-
-  QueryBuilder<PhraseCollection, PhraseCollection, QAfterFilterCondition>
   sortOrderEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -866,20 +848,6 @@ extension PhraseCollectionQuerySortBy
   }
 
   QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy>
-  sortByIsFavorite() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isFavorite', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy>
-  sortByIsFavoriteDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isFavorite', Sort.desc);
-    });
-  }
-
-  QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy>
   sortBySortOrder() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sortOrder', Sort.asc);
@@ -950,20 +918,6 @@ extension PhraseCollectionQuerySortThenBy
   }
 
   QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy>
-  thenByIsFavorite() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isFavorite', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy>
-  thenByIsFavoriteDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isFavorite', Sort.desc);
-    });
-  }
-
-  QueryBuilder<PhraseCollection, PhraseCollection, QAfterSortBy>
   thenBySortOrder() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sortOrder', Sort.asc);
@@ -1014,13 +968,6 @@ extension PhraseCollectionQueryWhereDistinct
   }
 
   QueryBuilder<PhraseCollection, PhraseCollection, QDistinct>
-  distinctByIsFavorite() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isFavorite');
-    });
-  }
-
-  QueryBuilder<PhraseCollection, PhraseCollection, QDistinct>
   distinctBySortOrder() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'sortOrder');
@@ -1056,12 +1003,6 @@ extension PhraseCollectionQueryProperty
   categoryIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'categoryId');
-    });
-  }
-
-  QueryBuilder<PhraseCollection, bool, QQueryOperations> isFavoriteProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isFavorite');
     });
   }
 

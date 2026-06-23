@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// Увеличенная карточка фразы с кнопками действий.
+/// Компактная карточка фразы.
 class PhraseCard extends StatelessWidget {
   final String id;
   final String text;
-  final bool isFavorite;
   final VoidCallback onCopy;
-  final VoidCallback onToggleFavorite;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -14,9 +12,7 @@ class PhraseCard extends StatelessWidget {
     super.key,
     required this.id,
     required this.text,
-    this.isFavorite = false,
     required this.onCopy,
-    required this.onToggleFavorite,
     required this.onEdit,
     required this.onDelete,
   });
@@ -26,107 +22,76 @@ class PhraseCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: InkWell(
         onTap: onCopy,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isCompact = constraints.maxWidth < 420;
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      text,
-                      maxLines: isCompact ? 3 : 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _ActionChip(
-                    icon: isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.grey,
-                    onPressed: onToggleFavorite,
-                    tooltip: isFavorite
-                        ? 'Убрать из избранного'
-                        : 'В избранное',
-                  ),
-                  const SizedBox(width: 4),
-                  _ActionChip(
-                    icon: Icons.copy,
-                    color: theme.colorScheme.primary,
-                    onPressed: onCopy,
-                    tooltip: 'Копировать',
-                  ),
-                  if (isCompact)
-                    PopupMenuButton<String>(
-                      tooltip: 'Ещё',
-                      icon: const Icon(Icons.more_vert),
-                      onSelected: (value) {
-                        if (value == 'edit') onEdit();
-                        if (value == 'delete') onDelete();
-                      },
-                      itemBuilder: (context) => const [
-                        PopupMenuItem(
-                          value: 'edit',
-                          child: Text('Редактировать'),
-                        ),
-                        PopupMenuItem(value: 'delete', child: Text('Удалить')),
-                      ],
-                    )
-                  else ...[
-                    const SizedBox(width: 4),
-                    _ActionChip(
-                      icon: Icons.edit,
-                      color: Colors.blue,
-                      onPressed: onEdit,
-                      tooltip: 'Редактировать',
-                    ),
-                    const SizedBox(width: 4),
-                    _ActionChip(
-                      icon: Icons.delete,
-                      color: Colors.red,
-                      onPressed: onDelete,
-                      tooltip: 'Удалить',
-                    ),
-                  ],
-                ],
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  text,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 15),
+                ),
               ),
-            );
-          },
+              const SizedBox(width: 6),
+              _Btn(
+                icon: Icons.copy,
+                color: theme.colorScheme.primary,
+                onTap: onCopy,
+                tooltip: 'Копировать',
+              ),
+              const SizedBox(width: 2),
+              _Btn(
+                icon: Icons.edit,
+                color: Colors.blue,
+                onTap: onEdit,
+                tooltip: 'Редактировать',
+              ),
+              const SizedBox(width: 2),
+              _Btn(
+                icon: Icons.delete,
+                color: Colors.red,
+                onTap: onDelete,
+                tooltip: 'Удалить',
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _ActionChip extends StatelessWidget {
+class _Btn extends StatelessWidget {
   final IconData icon;
   final Color color;
-  final VoidCallback onPressed;
+  final VoidCallback onTap;
   final String? tooltip;
 
-  const _ActionChip({
+  const _Btn({
     required this.icon,
     required this.color,
-    required this.onPressed,
+    required this.onTap,
     this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 36,
-      height: 36,
+      width: 28,
+      height: 28,
       child: IconButton(
-        icon: Icon(icon, size: 20),
+        icon: Icon(icon, size: 16),
         color: color,
-        onPressed: onPressed,
+        onPressed: onTap,
         padding: EdgeInsets.zero,
-        splashRadius: 18,
+        splashRadius: 14,
         tooltip: tooltip,
       ),
     );

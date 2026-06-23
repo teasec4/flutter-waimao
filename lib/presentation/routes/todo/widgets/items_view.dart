@@ -87,46 +87,84 @@ class _ItemsViewState extends State<ItemsView> {
     final pendingItems = provider.items.where((i) => !i.isDone).toList();
     final allOrdered = [...pendingItems, ...doneItems];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(list.name),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => provider.backToLists(),
-        ),
-      ),
-      body: provider.items.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.task_alt, size: 48, color: Colors.grey[400]),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Нет задач',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+    return Stack(
+      children: [
+        Column(
+          children: [
+            _buildHeader(provider, list.name),
+            if (provider.items.isEmpty)
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.task_alt, size: 48, color: Colors.grey[400]),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Нет задач',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ],
                   ),
-                ],
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.only(top: 4, bottom: 80),
+                  itemCount: allOrdered.length,
+                  itemBuilder: (context, index) {
+                    final item = allOrdered[index];
+                    return TodoItemCard(
+                      key: ValueKey(item.id),
+                      id: item.id,
+                      text: item.text,
+                      isDone: item.isDone,
+                      onToggle: () => provider.toggleDone(item.id),
+                      onDelete: () => _confirmDelete(item),
+                    );
+                  },
+                ),
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.only(top: 8, bottom: 80),
-              itemCount: allOrdered.length,
-              itemBuilder: (context, index) {
-                final item = allOrdered[index];
-                return TodoItemCard(
-                  key: ValueKey(item.id),
-                  id: item.id,
-                  text: item.text,
-                  isDone: item.isDone,
-                  onToggle: () => provider.toggleDone(item.id),
-                  onDelete: () => _confirmDelete(item),
-                );
-              },
+          ],
+        ),
+        Positioned(
+          right: 16,
+          bottom: 16,
+          child: FloatingActionButton(
+            onPressed: _showAddItemDialog,
+            child: const Icon(Icons.add),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader(TodoProvider provider, String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 8, 8, 4),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Назад к спискам',
+            onPressed: () => provider.backToLists(),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.checklist_rounded,
+            color: Theme.of(context).colorScheme.primary,
+            size: 22,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              overflow: TextOverflow.ellipsis,
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddItemDialog,
-        child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }

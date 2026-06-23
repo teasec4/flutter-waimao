@@ -27,17 +27,6 @@ class PhraseRepositoryImpl implements PhraseRepository {
   }
 
   @override
-  Future<List<Phrase>> getAllPhrases() async {
-    return isar.phraseCollections
-        .where()
-        .sortBySortOrder()
-        .findAll()
-        .then(
-          (list) => list.map((c) => c.toEntity()).toList(),
-        );
-  }
-
-  @override
   Future<void> addPhrase(Phrase phrase) async {
     final collection = PhraseCollection.fromEntity(phrase);
     await isar.writeTxn(() => isar.phraseCollections.put(collection));
@@ -45,8 +34,10 @@ class PhraseRepositoryImpl implements PhraseRepository {
 
   @override
   Future<void> editPhrase(String id, String text) async {
-    final existing =
-        await isar.phraseCollections.filter().uuidEqualTo(id).findAll();
+    final existing = await isar.phraseCollections
+        .filter()
+        .uuidEqualTo(id)
+        .findAll();
     if (existing.isNotEmpty) {
       await isar.writeTxn(() {
         existing.first.text = text;
@@ -56,21 +47,11 @@ class PhraseRepositoryImpl implements PhraseRepository {
   }
 
   @override
-  Future<void> updatePhraseFavorite(String id, bool isFavorite) async {
-    final existing =
-        await isar.phraseCollections.filter().uuidEqualTo(id).findAll();
-    if (existing.isNotEmpty) {
-      await isar.writeTxn(() {
-        existing.first.isFavorite = isFavorite;
-        return isar.phraseCollections.put(existing.first);
-      });
-    }
-  }
-
-  @override
   Future<void> deletePhrase(String id) async {
-    final existing =
-        await isar.phraseCollections.filter().uuidEqualTo(id).findAll();
+    final existing = await isar.phraseCollections
+        .filter()
+        .uuidEqualTo(id)
+        .findAll();
     if (existing.isNotEmpty) {
       await isar.writeTxn(
         () => isar.phraseCollections.deleteAll(

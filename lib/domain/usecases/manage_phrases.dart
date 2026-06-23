@@ -13,9 +13,11 @@ class ManagePhrases {
   Future<List<Phrase>> loadPhrases({String? categoryId}) =>
       repository.getPhrases(categoryId: categoryId);
 
-  Future<List<Phrase>> loadAllPhrases() => repository.getAllPhrases();
-
-  Future<void> addPhrase(String text, {String? categoryId, int sortOrder = 0}) async {
+  Future<void> addPhrase(
+    String text, {
+    String? categoryId,
+    int sortOrder = 0,
+  }) async {
     final phrase = Phrase(
       id: _uuid.v4(),
       text: text,
@@ -33,15 +35,10 @@ class ManagePhrases {
     await repository.editPhrase(id, newText);
   }
 
-  Future<void> toggleFavorite(String id, bool isFavorite) async {
-    await repository.updatePhraseFavorite(id, isFavorite);
-  }
-
   Future<void> deletePhrase(String id) async {
     await repository.deletePhrase(id);
   }
 
   Future<int> countPhrasesByCategory(String categoryId) =>
       repository.countPhrasesByCategory(categoryId);
-
 }

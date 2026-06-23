@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'package:paste_tool/core/di/app_dependencies.dart';
 import 'package:paste_tool/core/theme/app_theme.dart';
@@ -8,6 +9,7 @@ import 'package:paste_tool/presentation/router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await windowManager.ensureInitialized();
 
   await AppDependencies.init();
 
@@ -17,8 +19,6 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: di.phraseProvider),
-        ChangeNotifierProvider.value(value: di.volumeProvider),
-        ChangeNotifierProvider.value(value: di.dictionaryProvider),
         ChangeNotifierProvider.value(value: di.todoProvider),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],

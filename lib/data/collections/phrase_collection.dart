@@ -12,21 +12,18 @@ class PhraseCollection {
 
   late String text;
   late String? categoryId;
-  late bool isFavorite;
   late int sortOrder;
 
   Phrase toEntity() => Phrase(
-        id: uuid,
-        text: text,
-        categoryId: categoryId,
-        isFavorite: isFavorite,
-        sortOrder: sortOrder,
-      );
+    id: uuid,
+    text: text,
+    categoryId: categoryId,
+    sortOrder: sortOrder,
+  );
 
   static PhraseCollection fromEntity(Phrase entity) => PhraseCollection()
     ..uuid = entity.id
     ..text = entity.text
     ..categoryId = entity.categoryId
-    ..isFavorite = entity.isFavorite
     ..sortOrder = entity.sortOrder;
 }

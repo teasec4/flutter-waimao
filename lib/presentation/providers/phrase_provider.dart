@@ -8,13 +8,8 @@ class PhraseProvider extends ChangeNotifier {
   final ManagePhrases _managePhrases;
   final ManageCategories _manageCategories;
 
-  static const favoritesCategoryId = 'favorites';
-
   List<Phrase> _phrases = [];
   List<Phrase> get phrases => _filteredPhrases;
-
-  List<Phrase> _allPhrases = [];
-  List<Phrase> get allPhrases => _allPhrases;
 
   List<PhraseCategory> _categories = [];
   List<PhraseCategory> get categories => _categories;
@@ -33,7 +28,6 @@ class PhraseProvider extends ChangeNotifier {
 
   // Undo для удаления
   Phrase? _undoPhrase;
-
   PhraseCategory? _undoCategory;
   List<Phrase> _undoPhrasesForCategory = [];
 
@@ -48,22 +42,18 @@ class PhraseProvider extends ChangeNotifier {
     _lastError = null;
   }
 
-  /// Отфильтрованные фразы (поиск)
   List<Phrase> get _filteredPhrases {
     var result = _phrases;
 
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
-      result = result.where((p) => p.text.toLowerCase().contains(query)).toList();
+      result = result
+          .where((p) => p.text.toLowerCase().contains(query))
+          .toList();
     }
 
     return result;
   }
-
-  bool get isFavoritesCategory =>
-      _activeCategory?.id == favoritesCategoryId;
-
-  bool isFavoritesById(String id) => id == favoritesCategoryId;
 
   void setSearchQuery(String query) {
     _searchQuery = query;
@@ -74,41 +64,15 @@ class PhraseProvider extends ChangeNotifier {
 
   Future<void> _loadCategories() async {
     try {
-      _ensureFavoritesCategory();
       _categories = await _manageCategories.getCategories();
-      // Избранное всегда первая
-      final favIdx = _categories.indexWhere((c) => c.id == favoritesCategoryId);
-      if (favIdx > 0) {
-        final fav = _categories.removeAt(favIdx);
-        _categories.insert(0, fav);
-      }
-      // Если нет категорий — проверяем, был ли ап
-      if (_categories.isEmpty) {
-        _ensureFavoritesCategory();
-        _categories = await _manageCategories.getCategories();
-      }
       await _loadPhraseCounts();
+      if (_categories.isNotEmpty && _activeCategory == null) {
+        _activeCategory = _categories.first;
+        await _refreshPhrases();
+      }
       notifyListeners();
     } catch (e) {
       _lastError = 'Ошибка загрузки категорий: $e';
-      notifyListeners();
-    }
-  }
-
-  Future<void> _ensureFavoritesCategory() async {
-    try {
-      final cats = await _manageCategories.getCategories();
-      if (!cats.any((c) => c.id == favoritesCategoryId)) {
-        await _manageCategories.addCategoryRaw(
-          PhraseCategory(
-            id: favoritesCategoryId,
-            name: 'Избранное',
-            sortOrder: 0,
-          ),
-        );
-      }
-    } catch (e) {
-      _lastError = 'Ошибка создания категории "Избранное": $e';
       notifyListeners();
     }
   }
@@ -126,13 +90,7 @@ class PhraseProvider extends ChangeNotifier {
     _searchQuery = '';
 
     try {
-      if (category?.id == favoritesCategoryId) {
-        // Показываем все избранные фразы
-        await _loadAllPhrases();
-        _phrases = _allPhrases.where((p) => p.isFavorite).toList();
-      } else {
-        await _refreshPhrases();
-      }
+      await _refreshPhrases();
       notifyListeners();
     } catch (e) {
       _lastError = 'Ошибка выбора категории: $e';
@@ -156,29 +114,23 @@ class PhraseProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadAllPhrases() async {
-    _loading = true;
-    notifyListeners();
-
-    try {
-      _allPhrases = await _managePhrases.loadAllPhrases();
-    } catch (e) {
-      _lastError = 'Ошибка загрузки всех фраз: $e';
-    } finally {
-      _loading = false;
-      notifyListeners();
-    }
-  }
-
   // --- Управление категориями ---
 
   Future<void> addCategory(String name) async {
     try {
       final maxOrder = _categories.isEmpty
           ? 0
-          : _categories.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b) + 1;
+          : _categories
+                    .map((c) => c.sortOrder)
+                    .reduce((a, b) => a > b ? a : b) +
+                1;
       await _manageCategories.addCategory(name, sortOrder: maxOrder);
       _categories = await _manageCategories.getCategories();
+      // Авто-выбор только что созданной категории
+      final created = _categories.last;
+      _activeCategory = created;
+      await _refreshPhrases();
+      await _loadPhraseCounts();
       notifyListeners();
     } catch (e) {
       _lastError = 'Ошибка добавления категории: $e';
@@ -187,14 +139,16 @@ class PhraseProvider extends ChangeNotifier {
   }
 
   Future<void> renameCategory(String id, String newName) async {
-    if (id == favoritesCategoryId) return; // нельзя переименовать избранное
     try {
       await _manageCategories.renameCategory(id, newName);
       _categories = await _manageCategories.getCategories();
 
       if (_activeCategory?.id == id) {
-        _activeCategory =
-            PhraseCategory(id: id, name: newName, sortOrder: _activeCategory!.sortOrder);
+        _activeCategory = PhraseCategory(
+          id: id,
+          name: newName,
+          sortOrder: _activeCategory!.sortOrder,
+        );
       }
       notifyListeners();
     } catch (e) {
@@ -203,25 +157,22 @@ class PhraseProvider extends ChangeNotifier {
     }
   }
 
-  bool canDeleteCategory(String id) => id != favoritesCategoryId;
-
   Future<void> deleteCategory(String id) async {
-    if (id == favoritesCategoryId) return; // нельзя удалить избранное
     try {
-      // Сохраняем backup для undo
       _undoCategory = _categories.firstWhere(
         (c) => c.id == id,
         orElse: () => throw Exception('Категория не найдена'),
       );
-      _undoPhrasesForCategory =
-          await _managePhrases.loadPhrases(categoryId: id);
+      _undoPhrasesForCategory = await _managePhrases.loadPhrases(
+        categoryId: id,
+      );
 
       await _manageCategories.removeCategory(id);
       _categories = await _manageCategories.getCategories();
       await _loadPhraseCounts();
 
       if (_activeCategory?.id == id) {
-        _activeCategory = null;
+        _activeCategory = _categories.isNotEmpty ? _categories.first : null;
         await _refreshPhrases();
       } else {
         notifyListeners();
@@ -251,10 +202,8 @@ class PhraseProvider extends ChangeNotifier {
 
       if (_activeCategory?.id == cat.id) {
         await _refreshPhrases();
-        notifyListeners();
-      } else {
-        notifyListeners();
       }
+      notifyListeners();
     } catch (e) {
       _lastError = 'Ошибка восстановления категории: $e';
       notifyListeners();
@@ -267,14 +216,14 @@ class PhraseProvider extends ChangeNotifier {
     try {
       final maxOrder = _phrases.isEmpty
           ? 0
-          : _phrases.map((p) => p.sortOrder).reduce((a, b) => a > b ? a : b) + 1;
-      await _managePhrases.addPhrase(text, categoryId: _activeCategory?.id, sortOrder: maxOrder);
-      if (isFavoritesCategory) {
-        await _loadAllPhrases();
-        _phrases = _allPhrases.where((p) => p.isFavorite).toList();
-      } else {
-        await _refreshPhrases();
-      }
+          : _phrases.map((p) => p.sortOrder).reduce((a, b) => a > b ? a : b) +
+                1;
+      await _managePhrases.addPhrase(
+        text,
+        categoryId: _activeCategory?.id,
+        sortOrder: maxOrder,
+      );
+      await _refreshPhrases();
       await _loadPhraseCounts();
     } catch (e) {
       _lastError = 'Ошибка добавления фразы: $e';
@@ -285,51 +234,22 @@ class PhraseProvider extends ChangeNotifier {
   Future<void> editPhrase(String id, String newText) async {
     try {
       await _managePhrases.editPhrase(id, newText);
-      if (isFavoritesCategory) {
-        await _loadAllPhrases();
-        _phrases = _allPhrases.where((p) => p.isFavorite).toList();
-      } else {
-        await _refreshPhrases();
-      }
+      await _refreshPhrases();
     } catch (e) {
       _lastError = 'Ошибка редактирования фразы: $e';
       notifyListeners();
     }
   }
 
-  Future<void> toggleFavorite(String id, bool isFavorite) async {
-    try {
-      await _managePhrases.toggleFavorite(id, isFavorite);
-      if (isFavoritesCategory) {
-        await _loadAllPhrases();
-        _phrases = _allPhrases.where((p) => p.isFavorite).toList();
-      } else {
-        await _refreshPhrases();
-      }
-    } catch (e) {
-      _lastError = 'Ошибка изменения избранного: $e';
-      notifyListeners();
-    }
-  }
-
   Future<void> deletePhrase(String id) async {
     try {
-      // Сохраняем backup для undo
       _undoPhrase = _phrases.firstWhere(
         (p) => p.id == id,
-        orElse: () => _allPhrases.firstWhere(
-          (p) => p.id == id,
-          orElse: () => throw Exception('Фраза не найдена'),
-        ),
+        orElse: () => throw Exception('Фраза не найдена'),
       );
 
       await _managePhrases.deletePhrase(id);
-      if (isFavoritesCategory) {
-        await _loadAllPhrases();
-        _phrases = _allPhrases.where((p) => p.isFavorite).toList();
-      } else {
-        await _refreshPhrases();
-      }
+      await _refreshPhrases();
       await _loadPhraseCounts();
     } catch (e) {
       _undoPhrase = null;
@@ -345,12 +265,7 @@ class PhraseProvider extends ChangeNotifier {
 
     try {
       await _managePhrases.addPhraseRaw(backup);
-      if (isFavoritesCategory) {
-        await _loadAllPhrases();
-        _phrases = _allPhrases.where((p) => p.isFavorite).toList();
-      } else {
-        await _refreshPhrases();
-      }
+      await _refreshPhrases();
       await _loadPhraseCounts();
     } catch (e) {
       _lastError = 'Ошибка восстановления фразы: $e';
