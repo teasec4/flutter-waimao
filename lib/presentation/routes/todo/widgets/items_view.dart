@@ -5,7 +5,7 @@ import 'package:paste_tool/domain/entities/todo_item.dart';
 import 'package:paste_tool/presentation/providers/todo_provider.dart';
 import 'package:paste_tool/presentation/routes/todo/widgets/todo_item_card.dart';
 
-/// Экран с задачами выбранного списка.
+/// Tasks of the selected list.
 class ItemsView extends StatefulWidget {
   const ItemsView({super.key});
 
@@ -27,21 +27,21 @@ class _ItemsViewState extends State<ItemsView> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Новая задача'),
+        title: const Text('New task'),
         content: TextField(
           controller: _textCtrl,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Текст задачи'),
+          decoration: const InputDecoration(hintText: 'Task text'),
           onSubmitted: (_) => _submitItem(ctx),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () => _submitItem(ctx),
-            child: const Text('Добавить'),
+            child: const Text('Add'),
           ),
         ],
       ),
@@ -60,16 +60,16 @@ class _ItemsViewState extends State<ItemsView> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Редактировать задачу'),
+        title: const Text('Edit task'),
         content: TextField(
           controller: _textCtrl,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Текст задачи'),
+          decoration: const InputDecoration(hintText: 'Task text'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () {
@@ -78,7 +78,7 @@ class _ItemsViewState extends State<ItemsView> {
               Navigator.pop(ctx);
               context.read<TodoProvider>().editItem(item.id, text);
             },
-            child: const Text('Сохранить'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -89,19 +89,19 @@ class _ItemsViewState extends State<ItemsView> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Удалить задачу?'),
+        title: const Text('Delete task?'),
         content: Text('«${item.text}»'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () {
               Navigator.pop(ctx);
               context.read<TodoProvider>().deleteItem(item.id);
             },
-            child: const Text('Удалить'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -131,7 +131,7 @@ class _ItemsViewState extends State<ItemsView> {
                       Icon(Icons.task_alt, size: 48, color: Colors.grey[400]),
                       const SizedBox(height: 12),
                       const Text(
-                        'Нет задач',
+                        'No tasks',
                         style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                     ],
@@ -178,7 +178,7 @@ class _ItemsViewState extends State<ItemsView> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: 'Назад к спискам',
+            tooltip: 'Back to lists',
             onPressed: () => provider.backToLists(),
           ),
           const SizedBox(width: 4),

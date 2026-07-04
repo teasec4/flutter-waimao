@@ -11,8 +11,8 @@ class MainShell extends StatelessWidget {
   const MainShell({super.key, required this.navigationShell});
 
   static const _destinations = [
-    (icon: Icons.content_copy, label: 'Фразы'),
-    (icon: Icons.checklist, label: 'Заметки'),
+    (icon: Icons.content_copy, label: 'Phrases'),
+    (icon: Icons.checklist, label: 'Notes'),
   ];
 
   @override
@@ -42,8 +42,8 @@ class MainShell extends StatelessWidget {
               size: 18,
             ),
             tooltip: settings.alwaysOnTop
-                ? 'Не поверх окон'
-                : 'Поверх всех окон',
+                ? 'Not on top'
+                : 'Always on top',
             onPressed: () => settings.toggleAlwaysOnTop(),
           ),
           IconButton(
@@ -51,7 +51,7 @@ class MainShell extends StatelessWidget {
               settings.isDarkMode ? Icons.light_mode : Icons.dark_mode,
               size: 18,
             ),
-            tooltip: settings.isDarkMode ? 'Светлая тема' : 'Тёмная тема',
+            tooltip: settings.isDarkMode ? 'Light theme' : 'Dark theme',
             onPressed: () => settings.toggleTheme(),
           ),
           const SizedBox(width: 4),

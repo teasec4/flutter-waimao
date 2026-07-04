@@ -55,7 +55,7 @@ class TodoItemCard extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
             onPressed: onEdit,
-            tooltip: 'Редактировать',
+            tooltip: 'Edit',
           ),
           IconButton(
             icon: Icon(
@@ -64,7 +64,7 @@ class TodoItemCard extends StatelessWidget {
               color: theme.colorScheme.error,
             ),
             onPressed: onDelete,
-            tooltip: 'Удалить',
+            tooltip: 'Delete',
           ),
         ],
       ),

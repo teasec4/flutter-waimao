@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Оборачивает контент в центрированный контейнер
-/// с максимальной шириной для десктопа.
+/// Wraps content in a centered container
+/// with a max width for desktop.
 class ResponsiveContentWrapper extends StatelessWidget {
   final Widget child;
 

@@ -23,7 +23,7 @@ class TodoListCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
       child: Row(
         children: [
-          // Тело карточки — InkWell
+          // Card body — InkWell
           Expanded(
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
@@ -42,8 +42,8 @@ class TodoListCard extends StatelessWidget {
                     ),
                     PopupMenuButton<String>(
                       itemBuilder: (context) => [
-                        const PopupMenuItem(value: 'rename', child: Text('Переименовать')),
-                        const PopupMenuItem(value: 'delete', child: Text('Удалить')),
+                        const PopupMenuItem(value: 'rename', child: Text('Rename')),
+                        const PopupMenuItem(value: 'delete', child: Text('Delete')),
                       ],
                       onSelected: (value) {
                         if (value == 'rename') onRename();

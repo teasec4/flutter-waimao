@@ -22,7 +22,7 @@ class ManageTodoLists {
   }
 
   Future<void> renameList(String id, String name) async {
-    // Загружаем существующий список, чтобы сохранить оригинальную дату создания
+    // Load existing list to preserve original creation date
     final lists = await repository.getLists();
     final existing = lists.firstWhere((l) => l.id == id);
     return repository.updateList(

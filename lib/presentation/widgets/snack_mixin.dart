@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Примесь для State-классов: снекбары, undo-снекбары и проверка ошибок.
+/// Mixin for State classes: snackbars, undo snackbars, and error checking.
 mixin SnackMixin<T extends StatefulWidget> on State<T> {
   void showSnack(Text content) {
     ScaffoldMessenger.of(context)
@@ -23,18 +23,18 @@ mixin SnackMixin<T extends StatefulWidget> on State<T> {
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 4),
           action: SnackBarAction(
-            label: 'Отмена',
+            label: 'Undo',
             onPressed: () {
               onUndo();
-              showSnack(const Text('Восстановлено'));
+              showSnack(const Text('Restored'));
             },
           ),
         ),
       );
   }
 
-  /// Проверяет [errorText] и показывает снекбар, если ошибка есть.
-  /// Вызывает [onClear] для сброса ошибки.
+  /// Checks [errorText] and shows a snackbar if an error is present.
+  /// Calls [onClear] to reset the error.
   void checkError(String? errorText, VoidCallback onClear) {
     if (errorText != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -35,7 +35,7 @@ class TodoProvider extends ChangeNotifier {
     try {
       _lists = await _manageLists.getLists();
     } catch (e) {
-      _lastError = 'Ошибка загрузки списков: $e';
+      _lastError = 'Error loading lists: $e';
     }
     _loading = false;
     notifyListeners();
@@ -46,7 +46,7 @@ class TodoProvider extends ChangeNotifier {
       await _manageLists.addList(name);
       await loadLists();
     } catch (e) {
-      _lastError = 'Ошибка создания списка: $e';
+      _lastError = 'Error creating list: $e';
       notifyListeners();
     }
   }
@@ -56,7 +56,7 @@ class TodoProvider extends ChangeNotifier {
       await _manageLists.renameList(id, name);
       await loadLists();
     } catch (e) {
-      _lastError = 'Ошибка переименования: $e';
+      _lastError = 'Error renaming: $e';
       notifyListeners();
     }
   }
@@ -66,7 +66,7 @@ class TodoProvider extends ChangeNotifier {
       await _manageLists.deleteList(id);
       await loadLists();
     } catch (e) {
-      _lastError = 'Ошибка удаления списка: $e';
+      _lastError = 'Error deleting list: $e';
       notifyListeners();
     }
   }
@@ -92,7 +92,7 @@ class TodoProvider extends ChangeNotifier {
       await _manageItems.addItem(text, _activeList!.id, sortOrder: maxOrder);
       await _loadItems();
     } catch (e) {
-      _lastError = 'Ошибка создания задачи: $e';
+      _lastError = 'Error creating task: $e';
       notifyListeners();
     }
   }
@@ -103,7 +103,7 @@ class TodoProvider extends ChangeNotifier {
       await _manageItems.editItem(item, newText);
       await _loadItems();
     } catch (e) {
-      _lastError = 'Ошибка редактирования задачи: $e';
+      _lastError = 'Error editing task: $e';
       notifyListeners();
     }
   }
@@ -114,7 +114,7 @@ class TodoProvider extends ChangeNotifier {
       await _manageItems.toggleDone(item);
       await _loadItems();
     } catch (e) {
-      _lastError = 'Ошибка обновления задачи: $e';
+      _lastError = 'Error updating task: $e';
       notifyListeners();
     }
   }
@@ -124,7 +124,7 @@ class TodoProvider extends ChangeNotifier {
       await _manageItems.deleteItem(itemId);
       await _loadItems();
     } catch (e) {
-      _lastError = 'Ошибка удаления задачи: $e';
+      _lastError = 'Error deleting task: $e';
       notifyListeners();
     }
   }
@@ -134,7 +134,7 @@ class TodoProvider extends ChangeNotifier {
     try {
       _items = await _manageItems.getItems(_activeList!.id);
     } catch (e) {
-      _lastError = 'Ошибка загрузки задач: $e';
+      _lastError = 'Error loading tasks: $e';
     }
     notifyListeners();
   }

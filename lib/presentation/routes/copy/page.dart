@@ -10,7 +10,7 @@ import 'package:paste_tool/presentation/providers/phrase_provider.dart';
 import 'package:paste_tool/presentation/routes/copy/widgets/phrase_card.dart';
 import 'package:paste_tool/presentation/widgets/snack_mixin.dart';
 
-/// Единый экран: чипсы категорий + список фраз.
+/// Single screen: category chips + phrase list.
 class CopyPage extends StatefulWidget {
   const CopyPage({super.key});
 
@@ -29,7 +29,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
   Timer? _copyTimer;
   bool _showSearch = false;
 
-  // Данные для Undo
+  // Undo data
   Phrase? _deletedPhrase;
 
   @override
@@ -43,23 +43,23 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
     super.dispose();
   }
 
-  // --- Диалоги ---
+  // --- Dialogs ---
 
   void _showAddCategoryDialog() {
     _textCtrl.clear();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Новая папка'),
+        title: const Text('New folder'),
         content: TextField(
           controller: _textCtrl,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Название папки'),
+          decoration: const InputDecoration(hintText: 'Folder name'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () {
@@ -68,7 +68,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
                 Navigator.pop(ctx);
               }
             },
-            child: const Text('Создать'),
+            child: const Text('Create'),
           ),
         ],
       ),
@@ -80,16 +80,16 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Переименовать'),
+        title: const Text('Rename'),
         content: TextField(
           controller: _textCtrl,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Новое название'),
+          decoration: const InputDecoration(hintText: 'New name'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () {
@@ -101,7 +101,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
                 Navigator.pop(ctx);
               }
             },
-            child: const Text('Переименовать'),
+            child: const Text('Rename'),
           ),
         ],
       ),
@@ -112,14 +112,14 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Удалить папку?'),
+        title: const Text('Delete folder?'),
         content: Text(
-          'Папка «${cat.name}» и все фразы внутри неё будут удалены.',
+          'Folder "${cat.name}" and all its phrases will be deleted.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
@@ -128,7 +128,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
               p.deleteCategory(cat.id);
               checkError(p.lastError, () => p.clearError());
             },
-            child: const Text('Удалить'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -141,17 +141,17 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(isEditing ? 'Редактировать' : 'Новая фраза'),
+        title: Text(isEditing ? 'Edit' : 'New phrase'),
         content: TextField(
           controller: _textCtrl,
           maxLines: 3,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Текст фразы'),
+          decoration: const InputDecoration(hintText: 'Phrase text'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () {
@@ -166,7 +166,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
                 checkError(p.lastError, () => p.clearError());
               }
             },
-            child: const Text('Сохранить'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -177,26 +177,26 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Удалить фразу?'),
+        title: const Text('Delete phrase?'),
         content: Text(
-          '«${phrase.text.length > 50 ? '${phrase.text.substring(0, 50)}…' : phrase.text}»',
+           phrase.text.length > 50 ? '${phrase.text.substring(0, 50)}…' : phrase.text,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
               Navigator.pop(ctx);
-              // Сохраняем для Undo
+              // Save for undo
               _deletedPhrase = phrase;
               p.deletePhrase(phrase.id);
               checkError(p.lastError, () => p.clearError());
-              showUndoSnack('Фраза удалена', () => _undoDeletePhrase());
+              showUndoSnack('Phrase deleted', () => _undoDeletePhrase());
             },
-            child: const Text('Удалить'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -218,7 +218,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
     _copyTimer = Timer(const Duration(milliseconds: 1200), () {
       if (mounted) setState(() => _lastCopiedId = null);
     });
-    showSnack(const Text('Скопировано!'));
+    showSnack(const Text('Copied!'));
   }
 
   void _pasteFromClipboard(PhraseProvider p) async {
@@ -231,14 +231,14 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
       checkError(p.lastError, () => p.clearError());
       showSnack(
         Text(
-          'Вставлено: "${text.length > 30 ? '${text.substring(0, 30)}…' : text}"',
+          'Pasted: "${text.length > 30 ? '${text.substring(0, 30)}…' : text}"',
         ),
       );
     } else {
-      showSnack(const Text('Буфер обмена пуст'));
+      showSnack(const Text('Clipboard is empty'));
     }
   }
-  // --- Хоткеи ---
+  // --- Hotkeys ---
 
   void _handleCtrlF() {
     setState(() => _showSearch = true);
@@ -298,18 +298,18 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
                 Expanded(child: _buildPhraseList(provider)),
               ],
             ),
-            // FAB: новая фраза
+            // FAB: new phrase
             Positioned(
               right: 16,
               bottom: 16,
               child: FloatingActionButton(
                 onPressed: _showPhraseDialog,
-                tooltip: 'Новая фраза (Ctrl+N)',
+                tooltip: 'New phrase (Ctrl+N)',
                 heroTag: 'addPhrase',
                 child: const Icon(Icons.add),
               ),
             ),
-            // Кнопка прокрутки вверх
+            // Scroll to top button
             if (showScrollToTop)
               Positioned(
                 left: 16,
@@ -323,7 +323,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
                     );
                   },
                   heroTag: 'scrollToTop',
-                  tooltip: 'В начало списка',
+                  tooltip: 'Scroll to top',
                   child: const Icon(Icons.keyboard_arrow_up),
                 ),
               ),
@@ -333,7 +333,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
     );
   }
 
-  // --- Чипсы категорий ---
+  // --- Category chips ---
 
   Widget _buildChipBar(PhraseProvider p) {
     final cats = p.categories;
@@ -370,7 +370,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
               ),
               IconButton(
                 icon: const Icon(Icons.content_paste, size: 18),
-                tooltip: 'Вставить из буфера (Ctrl+V)',
+                tooltip: 'Paste (Ctrl+V)',
                 onPressed: () => _pasteFromClipboard(p),
               ),
               IconButton(
@@ -378,7 +378,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
                   _showSearch ? Icons.search_off : Icons.search,
                   size: 18,
                 ),
-                tooltip: _showSearch ? 'Скрыть поиск' : 'Поиск (Ctrl+F)',
+                tooltip: _showSearch ? 'Hide search' : 'Search (Ctrl+F)',
                 onPressed: () {
                   if (_showSearch) {
                     _searchCtrl.clear();
@@ -389,7 +389,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
               ),
               IconButton(
                 icon: const Icon(Icons.add_circle_outline, size: 20),
-                tooltip: 'Новая папка',
+                tooltip: 'New folder',
                 onPressed: _showAddCategoryDialog,
               ),
             ],
@@ -436,7 +436,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
           children: [
             ListTile(
               leading: const Icon(Icons.edit),
-              title: const Text('Переименовать'),
+              title: const Text('Rename'),
               onTap: () {
                 Navigator.pop(ctx);
                 _showRenameCategoryDialog(cat);
@@ -448,7 +448,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
                 color: Theme.of(context).colorScheme.error,
               ),
               title: Text(
-                'Удалить',
+                'Delete',
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
               onTap: () {
@@ -462,7 +462,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
     );
   }
 
-  // --- Поиск ---
+  // --- Search ---
 
   Widget _buildSearchBar(PhraseProvider p) {
     return AnimatedSize(
@@ -477,7 +477,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
                 focusNode: _searchFocusNode,
                 autofocus: true,
                 decoration: InputDecoration(
-                  hintText: 'Поиск… (Esc — закрыть)',
+                  hintText: 'Search… (Esc to close)',
                   prefixIcon: const Icon(Icons.search, size: 18),
                   suffixIcon: _searchCtrl.text.isNotEmpty
                       ? IconButton(
@@ -489,7 +489,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
                         )
                       : IconButton(
                           icon: const Icon(Icons.close, size: 16),
-                          tooltip: 'Закрыть поиск',
+                          tooltip: 'Close search',
                           onPressed: () {
                             setState(() => _showSearch = false);
                             _searchCtrl.clear();
@@ -512,7 +512,7 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
     );
   }
 
-  // --- Список фраз ---
+  // --- Phrase list ---
 
   Widget _buildPhraseList(PhraseProvider p) {
     if (p.loading) {
@@ -534,15 +534,15 @@ class _CopyPageState extends State<CopyPage> with SnackMixin {
             const SizedBox(height: 12),
             Text(
               _searchCtrl.text.isNotEmpty
-                  ? 'Ничего не найдено'
-                  : 'В папке нет фраз',
+                  ? 'Nothing found'
+                  : 'Folder is empty',
               style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             if (_searchCtrl.text.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  'Ctrl+N — добавить фразу',
+                  'Ctrl+N to add a phrase',
                   style: TextStyle(fontSize: 13, color: Colors.grey[500]),
                 ),
               ),

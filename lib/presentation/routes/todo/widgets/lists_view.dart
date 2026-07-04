@@ -5,7 +5,7 @@ import 'package:paste_tool/domain/entities/todo_list.dart';
 import 'package:paste_tool/presentation/providers/todo_provider.dart';
 import 'package:paste_tool/presentation/routes/todo/widgets/todo_list_card.dart';
 
-/// Экран со списком списков задач.
+/// List of todo lists.
 class ListsView extends StatefulWidget {
   const ListsView({super.key});
 
@@ -27,21 +27,21 @@ class _ListsViewState extends State<ListsView> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Новый список'),
+        title: const Text('New list'),
         content: TextField(
           controller: _nameCtrl,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Название списка'),
+          decoration: const InputDecoration(hintText: 'List name'),
           onSubmitted: (_) => _submitList(ctx),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () => _submitList(ctx),
-            child: const Text('Создать'),
+            child: const Text('Create'),
           ),
         ],
       ),
@@ -60,21 +60,21 @@ class _ListsViewState extends State<ListsView> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Переименовать'),
+        title: const Text('Rename'),
         content: TextField(
           controller: _nameCtrl,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Новое название'),
+          decoration: const InputDecoration(hintText: 'New name'),
           onSubmitted: (_) => _submitRename(ctx, id),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () => _submitRename(ctx, id),
-            child: const Text('Сохранить'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -92,19 +92,19 @@ class _ListsViewState extends State<ListsView> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Удалить список?'),
-        content: Text('Все задачи в списке «${list.name}» будут удалены.'),
+        title: const Text('Delete list?'),
+        content: Text('All tasks in "${list.name}" will be deleted.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () {
               Navigator.pop(ctx);
               context.read<TodoProvider>().deleteList(list.id);
             },
-            child: const Text('Удалить'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -132,12 +132,12 @@ class _ListsViewState extends State<ListsView> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Нет списков',
+                    'No lists',
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Нажмите + чтобы создать',
+                    'Tap + to create',
                     style: TextStyle(color: Colors.grey),
                   ),
                 ],

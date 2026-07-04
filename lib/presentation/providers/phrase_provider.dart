@@ -55,13 +55,11 @@ class PhraseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Загрузка ---
+  // --- Loading ---
 
   Future<void> _loadCategories() async {
     try {
-      var cats = await _manageCategories.getCategories();
-      cats.removeWhere((c) => c.name == 'Избранное');
-      _categories = cats;
+      _categories = await _manageCategories.getCategories();
       await _loadPhraseCounts();
       if (_categories.isNotEmpty && _activeCategory == null) {
         _activeCategory = _categories.first;
@@ -69,7 +67,7 @@ class PhraseProvider extends ChangeNotifier {
       }
       notifyListeners();
     } catch (e) {
-      _lastError = 'Ошибка загрузки категорий: $e';
+      _lastError = 'Error loading categories: $e';
       notifyListeners();
     }
   }
@@ -90,7 +88,7 @@ class PhraseProvider extends ChangeNotifier {
       await _refreshPhrases();
       notifyListeners();
     } catch (e) {
-      _lastError = 'Ошибка выбора категории: $e';
+      _lastError = 'Error selecting category: $e';
       notifyListeners();
     }
   }
@@ -104,14 +102,14 @@ class PhraseProvider extends ChangeNotifier {
         categoryId: _activeCategory?.id,
       );
     } catch (e) {
-      _lastError = 'Ошибка загрузки фраз: $e';
+      _lastError = 'Error loading phrases: $e';
     } finally {
       _loading = false;
       notifyListeners();
     }
   }
 
-  // --- Управление категориями ---
+  // --- Category management ---
 
   Future<void> addCategory(String name) async {
     try {
@@ -122,17 +120,14 @@ class PhraseProvider extends ChangeNotifier {
                     .reduce((a, b) => a > b ? a : b) +
                 1;
       await _manageCategories.addCategory(name, sortOrder: maxOrder);
-      var cats = await _manageCategories.getCategories();
-      cats.removeWhere((c) => c.name == 'Избранное');
-      _categories = cats;
-      // Авто-выбор только что созданной категории
+      _categories = await _manageCategories.getCategories();
       final created = _categories.last;
       _activeCategory = created;
       await _refreshPhrases();
       await _loadPhraseCounts();
       notifyListeners();
     } catch (e) {
-      _lastError = 'Ошибка добавления категории: $e';
+      _lastError = 'Error adding category: $e';
       notifyListeners();
     }
   }
@@ -140,9 +135,7 @@ class PhraseProvider extends ChangeNotifier {
   Future<void> renameCategory(String id, String newName) async {
     try {
       await _manageCategories.renameCategory(id, newName);
-      var cats = await _manageCategories.getCategories();
-      cats.removeWhere((c) => c.name == 'Избранное');
-      _categories = cats;
+      _categories = await _manageCategories.getCategories();
 
       if (_activeCategory?.id == id) {
         _activeCategory = PhraseCategory(
@@ -153,7 +146,7 @@ class PhraseProvider extends ChangeNotifier {
       }
       notifyListeners();
     } catch (e) {
-      _lastError = 'Ошибка переименования категории: $e';
+      _lastError = 'Error renaming category: $e';
       notifyListeners();
     }
   }
@@ -161,9 +154,7 @@ class PhraseProvider extends ChangeNotifier {
   Future<void> deleteCategory(String id) async {
     try {
       await _manageCategories.removeCategory(id);
-      var cats = await _manageCategories.getCategories();
-      cats.removeWhere((c) => c.name == 'Избранное');
-      _categories = cats;
+      _categories = await _manageCategories.getCategories();
       await _loadPhraseCounts();
 
       if (_activeCategory?.id == id) {
@@ -173,12 +164,12 @@ class PhraseProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      _lastError = 'Ошибка удаления категории: $e';
+      _lastError = 'Error deleting category: $e';
       notifyListeners();
     }
   }
 
-  // --- Управление фразами ---
+  // --- Phrase management ---
 
   Future<void> addPhrase(String text) async {
     try {
@@ -194,7 +185,7 @@ class PhraseProvider extends ChangeNotifier {
       await _refreshPhrases();
       await _loadPhraseCounts();
     } catch (e) {
-      _lastError = 'Ошибка добавления фразы: $e';
+      _lastError = 'Error adding phrase: $e';
       notifyListeners();
     }
   }
@@ -204,7 +195,7 @@ class PhraseProvider extends ChangeNotifier {
       await _managePhrases.editPhrase(id, newText);
       await _refreshPhrases();
     } catch (e) {
-      _lastError = 'Ошибка редактирования фразы: $e';
+      _lastError = 'Error editing phrase: $e';
       notifyListeners();
     }
   }
@@ -215,7 +206,7 @@ class PhraseProvider extends ChangeNotifier {
       await _refreshPhrases();
       await _loadPhraseCounts();
     } catch (e) {
-      _lastError = 'Ошибка удаления фразы: $e';
+      _lastError = 'Error deleting phrase: $e';
       notifyListeners();
     }
   }

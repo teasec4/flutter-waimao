@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Компактная карточка фразы.
+/// Compact phrase card.
 class PhraseCard extends StatelessWidget {
   final String id;
   final String text;
@@ -60,21 +60,21 @@ class PhraseCard extends StatelessWidget {
                   icon: isCopied ? Icons.check : Icons.copy,
                   color: isCopied ? Colors.green : theme.colorScheme.primary,
                   onTap: onCopy,
-                  tooltip: 'Копировать',
+                  tooltip: 'Copy',
                 ),
                 const SizedBox(width: 2),
                 _ActionBtn(
                   icon: Icons.edit,
                   color: Colors.blue,
                   onTap: onEdit,
-                  tooltip: 'Редактировать',
+                  tooltip: 'Edit',
                 ),
                 const SizedBox(width: 2),
                 _ActionBtn(
                   icon: Icons.delete,
                   color: theme.colorScheme.error,
                   onTap: onDelete,
-                  tooltip: 'Удалить',
+                  tooltip: 'Delete',
                 ),
               ],
             ),
